@@ -176,6 +176,7 @@ $router->get('/' . $saSlug . '/parametros', [SuperAdminController::class, 'setti
 $router->post('/' . $saSlug . '/parametros', [SuperAdminController::class, 'updateSettings']);
 $router->get('/' . $saSlug . '/verificar-atualizacao', [SuperAdminController::class, 'checkUpdates']);
 $router->post('/' . $saSlug . '/verificar-atualizacao', [SuperAdminController::class, 'checkUpdates']);
+$router->post('/' . $saSlug . '/executar-atualizacao', [SuperAdminController::class, 'executeAutoUpdate']);
 
 // Central de Avisos Globais (Broadcast)
 $router->get('/' . $saSlug . '/broadcast', [SuperAdminController::class, 'broadcast']);

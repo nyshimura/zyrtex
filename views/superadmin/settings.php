@@ -626,9 +626,66 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                 </div>
             </div>
 
-            <!-- Caixa de Alerta / Resultado da Verificação (Dinâmico) -->
+            <!-- ESCUDO DE PROTEÇÃO TOTAL: GARANTIA DE ZERO PERDA DE DADOS -->
+            <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-slate-950 border border-emerald-500/30 text-xs space-y-3">
+                <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                    <span class="text-base">🛡️</span>
+                    <span>Blindagem do Sistema & Garantia de Preservação Total de Dados</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-slate-300">
+                    <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                        <span class="font-bold text-white flex items-center gap-1.5">
+                            <span class="text-emerald-400">✓</span>
+                            <span>Arquivo .env 100% Intocado</span>
+                        </span>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            O arquivo <code>.env</code> é estritamente ignorado nas atualizações. A conexão com o banco de dados e as chaves de segurança nunca são modificadas.
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                        <span class="font-bold text-white flex items-center gap-1.5">
+                            <span class="text-emerald-400">✓</span>
+                            <span>Clientes & Lojistas Intactos</span>
+                        </span>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Nenhum cliente, oficina, ordem de serviço, venda no PDV ou pagamento é apagado. O banco apenas recebe novas colunas opcionais (migração incremental).
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                        <span class="font-bold text-white flex items-center gap-1.5">
+                            <span class="text-emerald-400">✓</span>
+                            <span>Fotos & Uploads Preservados</span>
+                        </span>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            A pasta <code>public/uploads/</code> com fotos de aparelhos danificados, laudos de bancada e logos de oficinas nunca é substituída nem limpa.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Caixa de Alerta / Resultado da Verificação & Ação 1-Clique (Dinâmico) -->
             <div id="updateAlertBox" class="hidden p-5 rounded-2xl border text-xs">
                 <!-- Preenchido via JavaScript -->
+            </div>
+
+            <!-- Modal / Caixa de Progresso da Atualização Automática -->
+            <div id="autoUpdateProgressModal" class="hidden p-6 rounded-2xl bg-indigo-950/80 border border-indigo-500/40 text-xs space-y-4">
+                <div class="flex items-center gap-3">
+                    <span class="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></span>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Atualizando Zyrtex Automaticamente...</h4>
+                        <p class="text-indigo-300 text-[11px]" id="autoUpdateStatusMessage">Baixando arquivos do GitHub e aplicando com segurança...</p>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                    <div id="autoUpdateProgressBar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2 rounded-full transition-all duration-500" style="width: 45%;"></div>
+                </div>
+                <div class="text-[10px] text-slate-400 flex items-center justify-between">
+                    <span>🛡️ Blindagem ativa: .env e uploads de clientes protegidos</span>
+                    <span id="autoUpdatePercent">Aguarde...</span>
+                </div>
             </div>
 
             <!-- Instruções de Atualização via Terminal -->
@@ -817,7 +874,7 @@ async function performUpdateCheck() {
             remoteStatus.textContent = 'Nova versão disponível!';
             systemBadge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-bounce"></span><span class="text-xs font-bold text-indigo-400">Atualização Disponível</span>`;
 
-            alertBox.className = 'p-5 rounded-2xl border border-indigo-500/40 bg-indigo-950/50 text-indigo-200 text-xs space-y-2';
+            alertBox.className = 'p-5 rounded-2xl border border-indigo-500/40 bg-indigo-950/50 text-indigo-200 text-xs space-y-3';
             alertBox.innerHTML = `
                 <div class="flex items-center gap-2 font-bold text-white text-sm">
                     <span>🎉</span>
@@ -827,7 +884,17 @@ async function performUpdateCheck() {
                 <div class="p-3 bg-slate-950/80 rounded-xl font-mono text-[11px] text-slate-300 border border-indigo-500/20">
                     <strong>Changelog:</strong> ${data.changelog || 'Melhorias de estabilidade e novas funcionalidades.'}
                 </div>
-                <p class="text-slate-400 pt-1">Execute <code>git pull origin main</code> no seu servidor para aplicar as novidades.</p>
+                <div class="pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <button type="button" onclick="executeAutoUpdateNow()" id="btnAutoUpdateAction"
+                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                        <span>🚀</span>
+                        <span>Atualizar Automaticamente Agora (1-Clique)</span>
+                    </button>
+                    <span class="text-[11px] text-emerald-300 flex items-center gap-1">
+                        <span>🛡️</span>
+                        <span>O .env e todos os dados dos clientes e lojas serão 100% preservados.</span>
+                    </span>
+                </div>
             `;
             alertBox.classList.remove('hidden');
 
@@ -872,6 +939,66 @@ async function performUpdateCheck() {
         spinner.classList.add('hidden');
         icon.classList.remove('hidden');
         btnText.textContent = 'Verificar Atualizações no GitHub';
+    }
+}
+
+// Execução da Atualização Automática com 1-Clique via Backend PHP
+async function executeAutoUpdateNow() {
+    if (!confirm('Deseja iniciar a atualização automática do Zyrtex a partir do GitHub agora?\n\n🛡️ GARANTIA DE SEGURANÇA TOTAL:\n- O arquivo .env NUNCA é sobrescrito;\n- Todas as oficinas, clientes e ordens de serviço são mantidos;\n- As fotos e anexos de OS permanecem salvos em disco;\n- Apenas o código-fonte PHP recebe os novos recursos.')) {
+        return;
+    }
+
+    const modal = document.getElementById('autoUpdateProgressModal');
+    const msg = document.getElementById('autoUpdateStatusMessage');
+    const bar = document.getElementById('autoUpdateProgressBar');
+    const percent = document.getElementById('autoUpdatePercent');
+    const alertBox = document.getElementById('updateAlertBox');
+
+    modal.classList.remove('hidden');
+    alertBox.classList.add('hidden');
+    bar.style.width = '30%';
+    percent.textContent = 'Baixando pacote do GitHub...';
+
+    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+
+    try {
+        bar.style.width = '60%';
+        msg.textContent = 'Extraindo arquivos e aplicando com proteção estrita ao .env e banco...';
+        percent.textContent = 'Sincronizando arquivos...';
+
+        const formData = new FormData();
+        formData.append('csrf_token', csrfToken);
+
+        const response = await fetch('<?= \Zyrtex\Core\Response::url('/' . $currentSaSlug . '/executar-atualizacao') ?>', {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            bar.style.width = '100%';
+            bar.className = 'bg-emerald-500 h-2 rounded-full transition-all duration-500';
+            msg.textContent = `✓ Sucesso! ${result.files_updated || 0} arquivos atualizados. Banco de dados e clientes 100% preservados!`;
+            percent.textContent = 'Concluído! Recarregando...';
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 2500);
+        } else {
+            bar.style.width = '100%';
+            bar.className = 'bg-rose-500 h-2 rounded-full';
+            msg.textContent = 'Erro na atualização: ' + (result.message || 'Falha ao sincronizar.');
+            percent.textContent = 'Falha';
+            alert('Falha na atualização automática: ' + result.message);
+        }
+    } catch (err) {
+        bar.style.width = '100%';
+        bar.className = 'bg-rose-500 h-2 rounded-full';
+        msg.textContent = 'Erro de comunicação durante a atualização.';
+        percent.textContent = 'Erro';
+        alert('Erro ao contatar o servidor para atualização.');
     }
 }
 </script>
