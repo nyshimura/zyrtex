@@ -1,0 +1,12 @@
+{
+    "name": "zyrtex-saas",
+    "version": "1.2.0",
+    "build": 20261014,
+    "release_channel": "stable",
+    "github_repo": "nyshimura/zyrtex",
+    "github_url": "https://github.com/nyshimura/zyrtex",
+    "raw_version_url": "https://raw.githubusercontent.com/nyshimura/zyrtex/main/version.json",
+    "min_php_version": "8.2.0",
+    "description": "Zyrtex SaaS - Sistema de Alta Performance para Assist\u00eancias T\u00e9cnicas e Oficinas",
+    "last_check": "2026-10-14 22:37:48"
+}
