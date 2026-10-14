@@ -40,8 +40,19 @@ class Router {
 
         // Verificação automática de CSRF em requisições POST (exceto Webhooks)
         if ($method === 'POST' && !str_contains($path, '/webhook')) {
-            $token = $request->input('_csrf') ?? $request->input('csrf_token');
+            $token = $request->input('_csrf') ?? $request->input('csrf_token') ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
             if (!CSRF::validate($token)) {
+                $acceptsJson = str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') || 
+                               str_contains($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'xmlhttprequest') ||
+                               $request->expectsJson();
+                if ($acceptsJson) {
+                    Response::json([
+                        'success' => false,
+                        'message' => 'Sessão expirada ou requisição inválida. Por favor, atualize a página e tente novamente.'
+                    ], 403);
+                    return;
+                }
+
                 Session::setFlash('error', 'Sessão expirada ou requisição inválida. Por favor, tente novamente.');
                 Response::redirect($_SERVER['HTTP_REFERER'] ?? $request->getPath());
                 return;

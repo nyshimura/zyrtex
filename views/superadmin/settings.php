@@ -251,7 +251,7 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                                    value="<?= \Zyrtex\Core\Response::url('/webhook/saas') ?>" 
                                    id="webhook_saas_url"
                                    class="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-700 text-cyan-300 font-mono text-xs rounded-xl select-all">
-                            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('webhook_saas_url').value); alert('URL do Webhook copiada com sucesso!');"
+                            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('webhook_saas_url').value); zyrtexToast('URL do Webhook copiada com sucesso!');"
                                     class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition flex items-center gap-1.5">
                                 <span>📋</span>
                                 <span>Copiar URL</span>
@@ -695,7 +695,7 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                         <span>💻</span>
                         <span>Como Atualizar o Zyrtex em Produção (Terminal / Servidor)</span>
                     </span>
-                    <button type="button" onclick="navigator.clipboard.writeText('git fetch origin && git pull origin main && php database/migrate.php'); alert('Comandos copiados!');"
+                    <button type="button" onclick="navigator.clipboard.writeText('git fetch origin && git pull origin main && php database/migrate.php'); zyrtexToast('Comandos de terminal copiados com sucesso!');"
                             class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[11px] font-bold transition">
                         Copiar Comandos
                     </button>
@@ -942,12 +942,49 @@ async function performUpdateCheck() {
     }
 }
 
-// Execução da Atualização Automática com 1-Clique via Backend PHP
-async function executeAutoUpdateNow() {
-    if (!confirm('Deseja iniciar a atualização automática do Zyrtex a partir do GitHub agora?\n\n🛡️ GARANTIA DE SEGURANÇA TOTAL:\n- O arquivo .env NUNCA é sobrescrito;\n- Todas as oficinas, clientes e ordens de serviço são mantidos;\n- As fotos e anexos de OS permanecem salvos em disco;\n- Apenas o código-fonte PHP recebe os novos recursos.')) {
-        return;
-    }
+// Execução da Atualização Automática com Modal Elegante (Substitui confirm/alert nativo)
+function executeAutoUpdateNow() {
+    zyrtexConfirm({
+        title: 'Atualização Automática do Zyrtex',
+        badge: '🛡️ Preservação Total de Dados',
+        icon: '🚀',
+        messageHtml: `
+            <div class="space-y-3">
+                <p class="font-bold text-white text-sm">Deseja iniciar a sincronização com a versão mais recente do GitHub agora?</p>
+                <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                    <span class="font-bold text-emerald-400 block flex items-center gap-1.5">
+                        <span>🛡️</span>
+                        <span>GARANTIA DE SEGURANÇA TOTAL:</span>
+                    </span>
+                    <ul class="space-y-1.5 text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-400 font-bold">✓</span>
+                            <span>O arquivo <strong>.env</strong> NUNCA é sobrescrito ou alterado;</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-400 font-bold">✓</span>
+                            <span>Todas as <strong>oficinas, clientes e ordens de serviço</strong> permanecem intactos;</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-400 font-bold">✓</span>
+                            <span>As <strong>fotos e anexos de OS</strong> permanecem salvos em disco;</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-400 font-bold">✓</span>
+                            <span>Apenas o <strong>código-fonte PHP</strong> recebe os novos recursos.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        `,
+        confirmText: '✓ Iniciar Atualização Agora',
+        cancelText: 'Cancelar',
+        confirmClass: 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20',
+        onConfirm: () => startAutoUpdateProcess()
+    });
+}
 
+async function startAutoUpdateProcess() {
     const modal = document.getElementById('autoUpdateProgressModal');
     const msg = document.getElementById('autoUpdateStatusMessage');
     const bar = document.getElementById('autoUpdateProgressBar');
@@ -959,7 +996,9 @@ async function executeAutoUpdateNow() {
     bar.style.width = '30%';
     percent.textContent = 'Baixando pacote do GitHub...';
 
-    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+    const csrfToken = document.querySelector('input[name="_csrf"]')?.value || 
+                      document.querySelector('input[name="csrf_token"]')?.value || 
+                      '<?= \Zyrtex\Core\CSRF::token() ?>';
 
     try {
         bar.style.width = '60%';
@@ -967,12 +1006,16 @@ async function executeAutoUpdateNow() {
         percent.textContent = 'Sincronizando arquivos...';
 
         const formData = new FormData();
+        formData.append('_csrf', csrfToken);
         formData.append('csrf_token', csrfToken);
 
         const response = await fetch('<?= \Zyrtex\Core\Response::url('/' . $currentSaSlug . '/executar-atualizacao') ?>', {
             method: 'POST',
             body: formData,
-            headers: { 'Accept': 'application/json' }
+            headers: { 
+                'Accept': 'application/json',
+                'X-CSRF-Token': csrfToken
+            }
         });
 
         const result = await response.json();
@@ -983,6 +1026,8 @@ async function executeAutoUpdateNow() {
             msg.textContent = `✓ Sucesso! ${result.files_updated || 0} arquivos atualizados. Banco de dados e clientes 100% preservados!`;
             percent.textContent = 'Concluído! Recarregando...';
 
+            zyrtexToast('✓ Zyrtex atualizado com sucesso! Recarregando página...', 'success');
+
             setTimeout(() => {
                 window.location.reload();
             }, 2500);
@@ -991,14 +1036,28 @@ async function executeAutoUpdateNow() {
             bar.className = 'bg-rose-500 h-2 rounded-full';
             msg.textContent = 'Erro na atualização: ' + (result.message || 'Falha ao sincronizar.');
             percent.textContent = 'Falha';
-            alert('Falha na atualização automática: ' + result.message);
+            
+            zyrtexAlert({
+                title: 'Falha na Atualização',
+                icon: '⚠️',
+                type: 'error',
+                buttonText: 'Fechar',
+                messageHtml: `<p class="text-rose-300 font-semibold mb-2">Não foi possível concluir a atualização automática:</p><p class="text-slate-300">${result.message || 'Erro desconhecido retornado pelo servidor.'}</p>`
+            });
         }
     } catch (err) {
         bar.style.width = '100%';
         bar.className = 'bg-rose-500 h-2 rounded-full';
         msg.textContent = 'Erro de comunicação durante a atualização.';
         percent.textContent = 'Erro';
-        alert('Erro ao contatar o servidor para atualização.');
+        
+        zyrtexAlert({
+            title: 'Erro de Comunicação',
+            icon: '⚠️',
+            type: 'error',
+            buttonText: 'Fechar',
+            messageHtml: `<p class="text-rose-300 font-semibold mb-2">Erro ao contatar o servidor para atualização:</p><p class="text-slate-400 font-mono text-[11px]">${err.message || 'Falha na requisição de rede ou resposta não-JSON.'}</p>`
+        });
     }
 }
 </script>

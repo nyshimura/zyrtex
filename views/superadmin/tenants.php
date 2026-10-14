@@ -150,20 +150,37 @@
                                 </td>
 
                                 <td class="py-3.5 px-4">
-                                    <form action="<?= \Zyrtex\Core\Response::url('/superadmin/tenants/status') ?>" method="POST" class="inline"
-                                          onsubmit="return confirm('<?= $isActive ? 'Deseja realmente SUSPENDER o acesso desta oficina?' : 'Deseja REATIVAR o acesso desta oficina?' ?>');">
+                                    <form action="<?= \Zyrtex\Core\Response::url('/superadmin/tenants/status') ?>" method="POST" class="inline">
                                         <?= $csrfField ?>
                                         <input type="hidden" name="tenant_id" value="<?= (int)$t['id'] ?>">
                                         <input type="hidden" name="status" value="<?= $isActive ? 0 : 1 ?>">
 
                                         <?php if ($isActive): ?>
-                                            <button type="submit" 
+                                            <button type="button" 
+                                                    onclick="zyrtexConfirm({
+                                                        title: 'Suspender Oficina',
+                                                        badge: '<?= htmlspecialchars($t['name'], ENT_QUOTES) ?>',
+                                                        icon: '⚠️',
+                                                        messageHtml: '<p>Deseja realmente <strong>SUSPENDER</strong> o acesso desta oficina? Os operadores não conseguirão acessar até que seja reativada.</p>',
+                                                        confirmText: 'Suspender Loja',
+                                                        confirmClass: 'px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase transition shadow-lg shadow-rose-600/20',
+                                                        onConfirm: () => this.form.submit()
+                                                    })"
                                                     class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-rose-500/20 hover:text-rose-300 hover:border-rose-500/30 transition"
                                                     title="Clique para suspender loja">
                                                 ✓ Ativa
                                             </button>
                                         <?php else: ?>
-                                            <button type="submit" 
+                                            <button type="button" 
+                                                    onclick="zyrtexConfirm({
+                                                        title: 'Reativar Oficina',
+                                                        badge: '<?= htmlspecialchars($t['name'], ENT_QUOTES) ?>',
+                                                        icon: '✓',
+                                                        messageHtml: '<p>Deseja realmente <strong>REATIVAR</strong> o acesso desta oficina à plataforma Zyrtex?</p>',
+                                                        confirmText: 'Reativar Loja',
+                                                        confirmClass: 'px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase transition shadow-lg shadow-emerald-500/20',
+                                                        onConfirm: () => this.form.submit()
+                                                    })"
                                                     class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-emerald-500/20 hover:text-emerald-300 transition"
                                                     title="Clique para reativar loja">
                                                 ✗ Suspensa
