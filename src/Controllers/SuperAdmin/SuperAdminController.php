@@ -589,6 +589,27 @@ class SuperAdminController {
     }
 
     /**
+     * Executa a atualização automática baixando e aplicando o pacote do GitHub (POST /superadmin/executar-atualizacao)
+     */
+    public function executeAutoUpdate(Request $request): void {
+        Auth::requireSuperAdmin();
+
+        require_once dirname(__DIR__, 2) . '/Services/AutoUpdaterService.php';
+        $updater = new \Zyrtex\Services\AutoUpdaterService();
+
+        $result = $updater->update();
+
+        Audit::log(null, Auth::id(), 'superadmin_auto_update_executed', [
+            'success' => $result['success'] ?? false,
+            'files_updated' => $result['files_updated'] ?? 0,
+            'message' => $result['message'] ?? '',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'
+        ]);
+
+        Response::json($result, ($result['success'] ?? false) ? 200 : 500);
+    }
+
+    /**
      * Central de Avisos Globais (Broadcast) (/superadmin/broadcast)
      */
     public function broadcast(Request $request): void {
