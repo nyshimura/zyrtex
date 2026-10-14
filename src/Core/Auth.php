@@ -156,6 +156,18 @@ class Auth {
     public static function requireSuperAdmin(?string $redirectPath = null): void {
         Session::start();
         if (!self::isSuperAdmin()) {
+            $isAjax = str_contains($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') ||
+                      str_contains($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '', 'xmlhttprequest') ||
+                      !empty($_SERVER['HTTP_X_CSRF_TOKEN']);
+
+            if ($isAjax) {
+                Response::json([
+                    'success' => false,
+                    'message' => 'Sessão expirada. Por favor, recarregue a página ou faça login novamente no painel SuperAdmin.'
+                ], 401);
+                exit;
+            }
+
             Session::setFlash('warning', 'Acesso restrito à equipe SuperAdmin da Zyrtex.');
             if ($redirectPath === null) {
                 $saSlug = \Zyrtex\Controllers\SuperAdmin\SuperAdminController::slug();

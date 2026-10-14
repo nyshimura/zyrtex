@@ -196,5 +196,241 @@
 
     </div>
 
+    <!-- ========================================== -->
+    <!-- ZYRTEX GLOBAL MODAL DIALOG (Dark SaaS)     -->
+    <!-- ========================================== -->
+    <div id="zyrtexModalBackdrop" 
+         class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none"
+         role="dialog" aria-modal="true" aria-labelledby="zyrtexModalTitle">
+        <div id="zyrtexModalCard" 
+             class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl shadow-indigo-950/50 transform scale-95 transition-transform duration-200 space-y-5">
+            
+            <!-- Topo com Ícone e Badge -->
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="zyrtexModalIconBox" class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                        <span id="zyrtexModalIcon">🚀</span>
+                    </div>
+                    <div>
+                        <span id="zyrtexModalBadge" class="hidden text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                            Zyrtex Shield
+                        </span>
+                        <h3 id="zyrtexModalTitle" class="text-base sm:text-lg font-black text-white tracking-tight mt-0.5">
+                            Confirmação
+                        </h3>
+                    </div>
+                </div>
+
+                <button type="button" onclick="zyrtexCloseModal(false)" 
+                        class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm font-bold cursor-pointer"
+                        aria-label="Fechar">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Corpo da Mensagem (Suporta HTML Rico) -->
+            <div id="zyrtexModalBody" class="text-xs sm:text-sm text-slate-300 space-y-3 leading-relaxed">
+                <!-- Conteúdo dinâmico injetado aqui -->
+            </div>
+
+            <!-- Ações / Botões -->
+            <div id="zyrtexModalActions" class="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-3 border-t border-slate-800/80">
+                <button type="button" id="zyrtexModalCancelBtn" onclick="zyrtexCloseModal(false)"
+                        class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider transition cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" id="zyrtexModalConfirmBtn"
+                        class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-indigo-600/30 cursor-pointer">
+                    Confirmar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Container de Toasts Globais -->
+    <div id="zyrtexToastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none p-4"></div>
+
+    <script>
+    (function() {
+        let currentOnConfirm = null;
+        let currentOnCancel = null;
+
+        window.zyrtexConfirm = function(options) {
+            options = options || {};
+            const backdrop = document.getElementById('zyrtexModalBackdrop');
+            const card = document.getElementById('zyrtexModalCard');
+            const icon = document.getElementById('zyrtexModalIcon');
+            const badge = document.getElementById('zyrtexModalBadge');
+            const title = document.getElementById('zyrtexModalTitle');
+            const body = document.getElementById('zyrtexModalBody');
+            const cancelBtn = document.getElementById('zyrtexModalCancelBtn');
+            const confirmBtn = document.getElementById('zyrtexModalConfirmBtn');
+
+            if (!backdrop) return;
+
+            // Configura ícone
+            if (icon) icon.textContent = options.icon || '🚀';
+            
+            // Configura badge
+            if (badge) {
+                if (options.badge) {
+                    badge.textContent = options.badge;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            // Título
+            if (title) title.textContent = options.title || 'Confirmação';
+
+            // Mensagem (HTML ou texto)
+            if (body) {
+                if (options.messageHtml) {
+                    body.innerHTML = options.messageHtml;
+                } else {
+                    body.textContent = options.message || 'Deseja prosseguir com esta ação?';
+                }
+            }
+
+            // Botão Cancelar
+            if (cancelBtn) {
+                cancelBtn.classList.remove('hidden');
+                cancelBtn.textContent = options.cancelText || 'Cancelar';
+                if (options.cancelClass) {
+                    cancelBtn.className = options.cancelClass;
+                } else {
+                    cancelBtn.className = 'px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase tracking-wider transition cursor-pointer';
+                }
+            }
+
+            // Botão Confirmar
+            if (confirmBtn) {
+                confirmBtn.textContent = options.confirmText || 'Confirmar';
+                if (options.confirmClass) {
+                    confirmBtn.className = options.confirmClass;
+                } else {
+                    confirmBtn.className = 'px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-indigo-600/30 cursor-pointer';
+                }
+            }
+
+            currentOnConfirm = options.onConfirm || null;
+            currentOnCancel = options.onCancel || null;
+
+            if (confirmBtn) {
+                confirmBtn.onclick = function() {
+                    zyrtexCloseModal(true);
+                    if (typeof currentOnConfirm === 'function') {
+                        currentOnConfirm();
+                    }
+                };
+            }
+
+            // Exibe modal com transição suave
+            backdrop.classList.remove('hidden', 'pointer-events-none');
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                if (card) {
+                    card.classList.remove('scale-95');
+                    card.classList.add('scale-100');
+                }
+            });
+        };
+
+        window.zyrtexAlert = function(options) {
+            options = options || {};
+            const cancelBtn = document.getElementById('zyrtexModalCancelBtn');
+            const prevOnConfirm = options.onConfirm;
+
+            window.zyrtexConfirm({
+                title: options.title || 'Aviso do Sistema',
+                badge: options.badge || (options.type === 'error' ? '⚠️ Erro' : 'ℹ️ Zyrtex SaaS'),
+                icon: options.icon || (options.type === 'error' ? '⚠️' : '✓'),
+                messageHtml: options.messageHtml || (options.message ? `<p>${options.message}</p>` : ''),
+                confirmText: options.buttonText || 'Entendido',
+                confirmClass: options.type === 'error' 
+                    ? 'px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-rose-600/20 cursor-pointer'
+                    : 'px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-indigo-600/30 cursor-pointer',
+                onConfirm: prevOnConfirm
+            });
+
+            if (cancelBtn) cancelBtn.classList.add('hidden');
+        };
+
+        window.zyrtexCloseModal = function(isConfirm) {
+            const backdrop = document.getElementById('zyrtexModalBackdrop');
+            const card = document.getElementById('zyrtexModalCard');
+            if (!backdrop) return;
+
+            backdrop.classList.add('opacity-0');
+            if (card) {
+                card.classList.remove('scale-100');
+                card.classList.add('scale-95');
+            }
+
+            setTimeout(() => {
+                backdrop.classList.add('hidden', 'pointer-events-none');
+                if (isConfirm !== true && typeof currentOnCancel === 'function') {
+                    currentOnCancel();
+                }
+                currentOnConfirm = null;
+                currentOnCancel = null;
+            }, 200);
+        };
+
+        window.zyrtexToast = function(message, type) {
+            type = type || 'info';
+            const container = document.getElementById('zyrtexToastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto p-4 rounded-2xl border text-xs font-bold flex items-center justify-between gap-3 shadow-xl transition-all duration-300 transform translate-y-4 opacity-0 ' + 
+                (type === 'success' ? 'bg-emerald-950/95 border-emerald-500/40 text-emerald-200 shadow-emerald-950/40' :
+                 type === 'error' ? 'bg-rose-950/95 border-rose-500/40 text-rose-200 shadow-rose-950/40' :
+                 'bg-slate-900/95 border-slate-700 text-white shadow-black/40');
+
+            toast.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                    <span class="text-base">${type === 'success' ? '✓' : type === 'error' ? '⚠️' : 'ℹ️'}</span>
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-white transition ml-2 cursor-pointer">✕</button>
+            `;
+
+            toast.querySelector('button').onclick = () => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            };
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+            });
+
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('opacity-0', 'translate-y-4');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4000);
+        };
+
+        // Fechar ao pressionar ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                zyrtexCloseModal(false);
+            }
+        });
+
+        // Fechar ao clicar no backdrop (fora do card)
+        document.addEventListener('click', function(e) {
+            const backdrop = document.getElementById('zyrtexModalBackdrop');
+            if (backdrop && !backdrop.classList.contains('hidden') && e.target === backdrop) {
+                zyrtexCloseModal(false);
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

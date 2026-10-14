@@ -886,7 +886,7 @@ async function performUpdateCheck() {
                 </div>
                 <div class="pt-2 flex flex-col sm:flex-row sm:items-center gap-3">
                     <button type="button" onclick="executeAutoUpdateNow()" id="btnAutoUpdateAction"
-                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2">
+                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 cursor-pointer">
                         <span>🚀</span>
                         <span>Atualizar Automaticamente Agora (1-Clique)</span>
                     </button>
@@ -942,9 +942,15 @@ async function performUpdateCheck() {
     }
 }
 
-// Execução da Atualização Automática com Modal Elegante (Substitui confirm/alert nativo)
-function executeAutoUpdateNow() {
-    zyrtexConfirm({
+// Execução da Atualização Automática com Modal Elegante
+window.executeAutoUpdateNow = function() {
+    if (typeof window.zyrtexConfirm !== 'function') {
+        alert('Deseja iniciar a atualização automática agora?');
+        window.startAutoUpdateProcess();
+        return;
+    }
+
+    window.zyrtexConfirm({
         title: 'Atualização Automática do Zyrtex',
         badge: '🛡️ Preservação Total de Dados',
         icon: '🚀',
@@ -979,31 +985,31 @@ function executeAutoUpdateNow() {
         `,
         confirmText: '✓ Iniciar Atualização Agora',
         cancelText: 'Cancelar',
-        confirmClass: 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20',
-        onConfirm: () => startAutoUpdateProcess()
+        confirmClass: 'px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-500/20 cursor-pointer',
+        onConfirm: () => window.startAutoUpdateProcess()
     });
-}
+};
 
-async function startAutoUpdateProcess() {
+window.startAutoUpdateProcess = async function() {
     const modal = document.getElementById('autoUpdateProgressModal');
     const msg = document.getElementById('autoUpdateStatusMessage');
     const bar = document.getElementById('autoUpdateProgressBar');
     const percent = document.getElementById('autoUpdatePercent');
     const alertBox = document.getElementById('updateAlertBox');
 
-    modal.classList.remove('hidden');
-    alertBox.classList.add('hidden');
-    bar.style.width = '30%';
-    percent.textContent = 'Baixando pacote do GitHub...';
+    if (modal) modal.classList.remove('hidden');
+    if (alertBox) alertBox.classList.add('hidden');
+    if (bar) bar.style.width = '30%';
+    if (percent) percent.textContent = 'Baixando pacote do GitHub...';
 
     const csrfToken = document.querySelector('input[name="_csrf"]')?.value || 
                       document.querySelector('input[name="csrf_token"]')?.value || 
                       '<?= \Zyrtex\Core\CSRF::token() ?>';
 
     try {
-        bar.style.width = '60%';
-        msg.textContent = 'Extraindo arquivos e aplicando com proteção estrita ao .env e banco...';
-        percent.textContent = 'Sincronizando arquivos...';
+        if (bar) bar.style.width = '60%';
+        if (msg) msg.textContent = 'Extraindo arquivos e aplicando com proteção estrita ao .env e banco...';
+        if (percent) percent.textContent = 'Sincronizando arquivos...';
 
         const formData = new FormData();
         formData.append('_csrf', csrfToken);
@@ -1018,46 +1024,77 @@ async function startAutoUpdateProcess() {
             }
         });
 
-        const result = await response.json();
+        let result;
+        const responseText = await response.text();
+        try {
+            result = JSON.parse(responseText);
+        } catch (jsonErr) {
+            throw new Error(responseText.substring(0, 150) || 'Resposta do servidor não foi um JSON válido.');
+        }
 
-        if (result.success) {
-            bar.style.width = '100%';
-            bar.className = 'bg-emerald-500 h-2 rounded-full transition-all duration-500';
-            msg.textContent = `✓ Sucesso! ${result.files_updated || 0} arquivos atualizados. Banco de dados e clientes 100% preservados!`;
-            percent.textContent = 'Concluído! Recarregando...';
+        if (result && result.success) {
+            if (bar) {
+                bar.style.width = '100%';
+                bar.className = 'bg-emerald-500 h-2 rounded-full transition-all duration-500';
+            }
+            if (msg) msg.textContent = `✓ Sucesso! ${result.files_updated || 0} arquivos atualizados. Banco de dados e clientes 100% preservados!`;
+            if (percent) percent.textContent = 'Concluído! Recarregando...';
 
-            zyrtexToast('✓ Zyrtex atualizado com sucesso! Recarregando página...', 'success');
+            if (typeof window.zyrtexToast === 'function') {
+                window.zyrtexToast('✓ Zyrtex atualizado com sucesso! Recarregando página...', 'success');
+            }
 
             setTimeout(() => {
                 window.location.reload();
             }, 2500);
         } else {
+            if (bar) {
+                bar.style.width = '100%';
+                bar.className = 'bg-rose-500 h-2 rounded-full';
+            }
+            if (msg) msg.textContent = 'Erro na atualização: ' + (result?.message || 'Falha ao sincronizar.');
+            if (percent) percent.textContent = 'Falha';
+            
+            if (typeof window.zyrtexAlert === 'function') {
+                window.zyrtexAlert({
+                    title: 'Falha na Atualização',
+                    icon: '⚠️',
+                    type: 'error',
+                    buttonText: 'Fechar',
+                    messageHtml: `<p class="text-rose-300 font-semibold mb-2">Não foi possível concluir a atualização automática:</p><p class="text-slate-300">${result?.message || 'Erro desconhecido retornado pelo servidor.'}</p>`
+                });
+            } else {
+                alert('Falha na atualização: ' + (result?.message || 'Erro desconhecido.'));
+            }
+        }
+    } catch (err) {
+        if (bar) {
             bar.style.width = '100%';
             bar.className = 'bg-rose-500 h-2 rounded-full';
-            msg.textContent = 'Erro na atualização: ' + (result.message || 'Falha ao sincronizar.');
-            percent.textContent = 'Falha';
-            
-            zyrtexAlert({
-                title: 'Falha na Atualização',
+        }
+        if (msg) msg.textContent = 'Erro de comunicação durante a atualização.';
+        if (percent) percent.textContent = 'Erro';
+        
+        if (typeof window.zyrtexAlert === 'function') {
+            window.zyrtexAlert({
+                title: 'Erro de Comunicação',
                 icon: '⚠️',
                 type: 'error',
                 buttonText: 'Fechar',
-                messageHtml: `<p class="text-rose-300 font-semibold mb-2">Não foi possível concluir a atualização automática:</p><p class="text-slate-300">${result.message || 'Erro desconhecido retornado pelo servidor.'}</p>`
+                messageHtml: `<p class="text-rose-300 font-semibold mb-2">Erro ao contatar o servidor para atualização:</p><p class="text-slate-400 font-mono text-[11px]">${err.message || 'Falha na requisição de rede ou resposta não-JSON.'}</p>`
             });
+        } else {
+            alert('Erro ao contatar o servidor para atualização: ' + err.message);
         }
-    } catch (err) {
-        bar.style.width = '100%';
-        bar.className = 'bg-rose-500 h-2 rounded-full';
-        msg.textContent = 'Erro de comunicação durante a atualização.';
-        percent.textContent = 'Erro';
-        
-        zyrtexAlert({
-            title: 'Erro de Comunicação',
-            icon: '⚠️',
-            type: 'error',
-            buttonText: 'Fechar',
-            messageHtml: `<p class="text-rose-300 font-semibold mb-2">Erro ao contatar o servidor para atualização:</p><p class="text-slate-400 font-mono text-[11px]">${err.message || 'Falha na requisição de rede ou resposta não-JSON.'}</p>`
-        });
     }
-}
+};
+
+// Event delegation global para garantir que o clique no botão disparará mesmo se inserido dinamicamente
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('#btnAutoUpdateAction');
+    if (btn) {
+        e.preventDefault();
+        window.executeAutoUpdateNow();
+    }
+});
 </script>
