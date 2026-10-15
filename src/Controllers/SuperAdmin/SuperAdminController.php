@@ -211,7 +211,7 @@ class SuperAdminController {
         $params = [];
 
         if (!empty($search)) {
-            $sql .= " AND (t.business_name LIKE :q1 OR t.slug LIKE :q2 OR t.custom_domain LIKE :q3)";
+            $sql .= " AND (t.business_name LIKE :q1 OR t.slug LIKE :q2 OR t.whatsapp_number LIKE :q3)";
             $params['q1'] = "%{$search}%";
             $params['q2'] = "%{$search}%";
             $params['q3'] = "%{$search}%";
@@ -453,7 +453,24 @@ class SuperAdminController {
             'saas_contact_email',
             'saas_contact_whatsapp',
             'saas_footer_copyright',
-            'saas_footer_note'
+            'saas_footer_note',
+            // Configurações SMTP / E-mail
+            'smtp_host',
+            'smtp_port',
+            'smtp_encryption',
+            'smtp_username',
+            'smtp_from_email',
+            'smtp_from_name',
+            'smtp_active',
+            // Parâmetros de Remarketing e Indicação
+            'remarketing_expiration_hours',
+            'remarketing_base_discount',
+            'remarketing_loyalty_bonus_per_month',
+            'remarketing_max_discount',
+            'remarketing_auto_active',
+            'referral_active',
+            'referral_reward_days',
+            'referral_welcome_days'
         ];
 
         // Processa alteração segura do slug do SuperAdmin
@@ -495,6 +512,17 @@ class SuperAdminController {
             }
         }
 
+        // Criptografia segura da Senha SMTP (AES-256-CBC)
+        $rawSmtpPass = $request->post('smtp_password');
+        if ($rawSmtpPass !== null && trim((string)$rawSmtpPass) !== '') {
+            $encPass = \Zyrtex\Services\MailService::encryptPassword(trim((string)$rawSmtpPass));
+            Database::execute(
+                "INSERT INTO saas_settings (config_key, config_value) VALUES ('smtp_password', :val) 
+                 ON DUPLICATE KEY UPDATE config_value = :val2",
+                ['val' => $encPass, 'val2' => $encPass]
+            );
+        }
+
         Audit::log(null, Auth::id(), 'superadmin_saas_settings_updated', [
             'updated_keys' => $keys,
             'superadmin_slug' => $newSuperAdminSlug ?? self::slug(),
@@ -503,7 +531,8 @@ class SuperAdminController {
 
         Session::setFlash('success', 'Parâmetros e credenciais globais do SaaS salvos com sucesso!');
         $targetSlug = $newSuperAdminSlug ?? self::slug();
-        Response::redirect('/' . $targetSlug . '/parametros');
+        $returnTab = $request->post('return_tab') ? '#tab-' . preg_replace('/[^a-z0-9_\-]/', '', (string)$request->post('return_tab')) : '';
+        Response::redirect('/' . $targetSlug . '/parametros' . $returnTab);
     }
 
     /**
@@ -828,7 +857,7 @@ class SuperAdminController {
              GROUP BY plan_type"
         );
         $breakdown = [
-            'annual_domain' => ['name' => 'Domínio Próprio Anual', 'count' => 0, 'total' => 0.0, 'icon' => '🌐'],
+            'annual_domain' => ['name' => 'Plano Anual Sem Anúncios', 'count' => 0, 'total' => 0.0, 'icon' => '✨'],
             'slug_change'   => ['name' => 'Taxa de Troca de Rota/Slug', 'count' => 0, 'total' => 0.0, 'icon' => '🔗'],
             'niche_change'  => ['name' => 'Readequação de Nicho', 'count' => 0, 'total' => 0.0, 'icon' => '🔄']
         ];
@@ -889,7 +918,7 @@ class SuperAdminController {
                 WHERE 1=1";
         $params = [];
 
-        if (!empty($filterStatus) && in_array($filterStatus, ['approved', 'pending', 'cancelled', 'refunded'], true)) {
+        if (!empty($filterStatus) && in_array($filterStatus, ['approved', 'pending', 'cancelled', 'refunded', 'remarketing', 'expired'], true)) {
             if ($filterStatus === 'refunded') {
                 $sql .= " AND s.is_refunded = 1";
             } else {
@@ -921,6 +950,10 @@ class SuperAdminController {
             $versionData = json_decode(file_get_contents($versionFile), true) ?: [];
         }
 
+        // Métricas de Remarketing & Indicações
+        $remarketingMetrics = \Zyrtex\Services\RemarketingService::getMetrics();
+        $referralMetrics = \Zyrtex\Services\ReferralService::getSuperAdminMetrics();
+
         View::render('superadmin/financial', [
             'totalRevenue' => $totalRevenue,
             'currentMonthRevenue' => $currentMonthRevenue,
@@ -943,6 +976,8 @@ class SuperAdminController {
             'filterPlan' => $filterPlan,
             'search' => $search,
             'versionData' => $versionData,
+            'remarketingMetrics' => $remarketingMetrics,
+            'referralMetrics' => $referralMetrics,
             'pageTitle' => 'Painel Financeiro & MRR &bull; SuperAdmin'
         ], 'superadmin');
     }
@@ -970,7 +1005,7 @@ class SuperAdminController {
         fputcsv($output, ['ID', 'Oficina', 'Subdominio', 'Tipo de Plano', 'Referencia / Alvo', 'Valor (R$)', 'Status', 'Estornado', 'ID Mercado Pago', 'Data Pagamento', 'Data Criacao'], ';');
 
         $planLabels = [
-            'annual_domain' => 'Dominio Proprio Anual',
+            'annual_domain' => 'Plano Anual Sem Anuncios',
             'slug_change' => 'Troca de Slug',
             'niche_change' => 'Readequacao de Nicho'
         ];
@@ -993,5 +1028,260 @@ class SuperAdminController {
 
         fclose($output);
         exit;
+    }
+
+    /**
+     * Central de Templates e Disparos de E-mail (/superadmin/emails)
+     */
+    public function emails(Request $request): void {
+        Auth::requireSuperAdmin();
+
+        $templates = Database::fetchAll("SELECT * FROM email_templates ORDER BY id ASC");
+        $smtpConfig = \Zyrtex\Services\MailService::getConfig();
+
+        View::render('superadmin/emails/index', [
+            'templates' => $templates,
+            'smtpConfig' => $smtpConfig,
+            'pageTitle' => 'Templates de E-mail & Disparos &bull; SuperAdmin'
+        ], 'superadmin');
+    }
+
+    /**
+     * Editor Visual Drag & Drop de Template (/superadmin/emails/editar?id=X)
+     */
+    public function editEmailTemplate(Request $request): void {
+        Auth::requireSuperAdmin();
+
+        $id = (int)$request->query('id', 0);
+        $template = Database::fetchOne("SELECT * FROM email_templates WHERE id = :id", ['id' => $id]);
+
+        if (!$template) {
+            Session::setFlash('error', 'Template de e-mail não encontrado.');
+            Response::redirect(self::url('/emails'));
+            return;
+        }
+
+        $smtpConfig = \Zyrtex\Services\MailService::getConfig();
+
+        View::render('superadmin/emails/editor', [
+            'template' => $template,
+            'smtpConfig' => $smtpConfig,
+            'pageTitle' => 'Editar Template: ' . $template['name'] . ' &bull; SuperAdmin'
+        ], 'superadmin');
+    }
+
+    /**
+     * Salvar Template de E-mail (POST /superadmin/emails/salvar)
+     */
+    public function saveEmailTemplate(Request $request): void {
+        Auth::requireSuperAdmin();
+
+        $isJson = str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json');
+        if ($isJson) {
+            $raw = file_get_contents('php://input');
+            $data = json_decode($raw, true) ?: [];
+        } else {
+            $data = $_POST;
+        }
+
+        $id = (int)($data['id'] ?? 0);
+        $subject = trim((string)($data['subject'] ?? ''));
+        $name = trim((string)($data['name'] ?? ''));
+        $description = trim((string)($data['description'] ?? ''));
+        $blocksRaw = $data['blocks_json'] ?? '[]';
+        $blocks = is_array($blocksRaw) ? $blocksRaw : (json_decode((string)$blocksRaw, true) ?: []);
+
+        if ($id <= 0 || empty($subject)) {
+            if ($isJson) {
+                Response::json(['success' => false, 'error' => 'Identificador do template e assunto são obrigatórios.']);
+                return;
+            }
+            Session::setFlash('error', 'Identificador do template e assunto são obrigatórios.');
+            Response::redirect(self::url('/emails'));
+            return;
+        }
+
+        // Compila blocos para HTML puro compatível com clientes de e-mail
+        $bodyHtml = \Zyrtex\Services\MailService::compileBlocksToHtml($blocks);
+        $blocksJson = json_encode($blocks, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+        Database::execute(
+            "UPDATE email_templates 
+             SET subject = :subject, 
+                 name = :name, 
+                 description = :desc, 
+                 blocks_json = :blocks, 
+                 body_html = :html, 
+                 updated_at = NOW() 
+             WHERE id = :id",
+            [
+                'subject' => $subject,
+                'name' => $name,
+                'desc' => $description,
+                'blocks' => $blocksJson,
+                'html' => $bodyHtml,
+                'id' => $id
+            ]
+        );
+
+        Audit::log(null, Auth::id(), 'email_template_updated', [
+            'template_id' => $id,
+            'subject' => $subject,
+            'blocks_count' => count($blocks)
+        ]);
+
+        if ($isJson) {
+            Response::json([
+                'success' => true,
+                'message' => 'Template salvo com sucesso!',
+                'html_preview' => $bodyHtml
+            ]);
+            return;
+        }
+
+        Session::setFlash('success', 'Template de e-mail atualizado com sucesso!');
+        Response::redirect(self::url('/emails/editar?id=' . $id));
+    }
+
+    /**
+     * Envio de E-mail de Teste do Template (POST /superadmin/emails/testar)
+     */
+    public function testEmailTemplate(Request $request): void {
+        Auth::requireSuperAdmin();
+
+        $isJson = str_contains($_SERVER['CONTENT_TYPE'] ?? '', 'application/json');
+        if ($isJson) {
+            $raw = file_get_contents('php://input');
+            $data = json_decode($raw, true) ?: [];
+        } else {
+            $data = $_POST;
+        }
+
+        $id = (int)($data['id'] ?? 0);
+        $testEmail = trim((string)($data['test_email'] ?? ''));
+
+        if (!filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
+            Response::json(['success' => false, 'error' => 'Informe um endereço de e-mail válido para teste.']);
+            return;
+        }
+
+        $template = Database::fetchOne("SELECT * FROM email_templates WHERE id = :id", ['id' => $id]);
+        if (!$template) {
+            Response::json(['success' => false, 'error' => 'Template não encontrado.']);
+            return;
+        }
+
+        // Mock data para placeholders
+        $placeholders = [
+            'client_name' => 'Dr. Carlos Alberto Ferreira',
+            'client_email' => $testEmail,
+            'activation_url' => Response::url('/portal/ativar?token=test_preview_demo_token_12345'),
+            'shop_name' => 'Oficina Master Tech Exemplo',
+            'shop_phone' => '(11) 98765-4321',
+            'user_name' => 'Administrador da Oficina',
+            'user_email' => $testEmail,
+            'token_2fa' => \Zyrtex\Services\MailService::generateSteamCode(),
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '200.180.95.22',
+            'date_time' => date('d/m/Y \à\s H:i:s'),
+            'current_year' => date('Y'),
+            'app_url' => Response::url('/')
+        ];
+
+        // Se veio blocks_json no teste (edição não salva ainda)
+        if (!empty($data['blocks_json'])) {
+            $blocksRaw = $data['blocks_json'];
+            $blocks = is_array($blocksRaw) ? $blocksRaw : (json_decode((string)$blocksRaw, true) ?: []);
+            $html = \Zyrtex\Services\MailService::compileBlocksToHtml($blocks);
+            $subject = trim((string)($data['subject'] ?? $template['subject']));
+
+            foreach ($placeholders as $k => $v) {
+                $tag = '{{' . $k . '}}';
+                $subject = str_replace($tag, (string)$v, $subject);
+                $html = str_replace($tag, (string)$v, $html);
+            }
+
+            $result = \Zyrtex\Services\MailService::sendRaw($testEmail, 'Destinatário de Teste', $subject, $html);
+        } else {
+            $result = \Zyrtex\Services\MailService::sendTemplate($template['slug'], $testEmail, 'Destinatário de Teste', $placeholders);
+        }
+
+        Response::json($result);
+    }
+
+    /**
+     * Teste Rápido de Conexão SMTP com Handshake Log (POST /superadmin/parametros/smtp-teste)
+     */
+    public function testSmtp(Request $request): void {
+        Auth::requireSuperAdmin();
+
+        $testEmail = trim((string)$request->post('test_email', ''));
+        if (!filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
+            Response::json(['success' => false, 'error' => 'Informe um e-mail válido para receber o diagnóstico.']);
+            return;
+        }
+
+        $result = \Zyrtex\Services\MailService::testConnection($testEmail);
+        Response::json($result);
+    }
+
+    /**
+     * Processa manualmente e varre pendentes para mover para remarketing (POST /superadmin/remarketing/processar)
+     */
+    public function triggerRemarketingQueue(Request $request): void {
+        Auth::requireSuperAdmin();
+        $processed = \Zyrtex\Services\RemarketingService::processPendingExpirations();
+        $count = count($processed);
+        if ($count > 0) {
+            Session::setFlash('success', "✓ Fila de remarketing atualizada: {$count} transação(ões) expirada(s) processada(s) com desconto de fidelidade!");
+        } else {
+            Session::setFlash('info', "Nenhuma transação pendente atingiu o tempo de expiração no momento.");
+        }
+        Response::redirect(self::url('/financeiro?status=remarketing'));
+    }
+
+    /**
+     * Dispara e-mail de recuperação ou gera link WhatsApp (POST /superadmin/remarketing/enviar)
+     */
+    public function sendRemarketing(Request $request): void {
+        Auth::requireSuperAdmin();
+        $subId = (int)$request->post('subscription_id', 0);
+        $channel = (string)$request->post('channel', 'email');
+
+        if ($subId <= 0) {
+            Session::setFlash('error', 'ID de transação inválido.');
+            Response::redirect(self::url('/financeiro'));
+            return;
+        }
+
+        if ($channel === 'email') {
+            $ok = \Zyrtex\Services\RemarketingService::sendRecoveryEmail($subId);
+            if ($ok) {
+                Session::setFlash('success', '✓ E-mail com proposta de fidelidade enviado com sucesso para a oficina!');
+            } else {
+                Session::setFlash('error', 'Falha ao disparar e-mail de recuperação.');
+            }
+            Response::redirect(self::url('/financeiro?status=remarketing'));
+            return;
+        }
+
+        // Se WhatsApp, busca dados e redireciona
+        $sub = Database::fetchOne("
+            SELECT s.*, t.business_name, t.whatsapp_number,
+                   TIMESTAMPDIFF(MONTH, t.created_at, NOW()) AS tenant_age_months
+            FROM saas_subscriptions s
+            JOIN tenants t ON t.id = s.tenant_id
+            WHERE s.id = :id
+        ", ['id' => $subId]);
+
+        if ($sub) {
+            $waUrl = \Zyrtex\Services\RemarketingService::getWhatsAppRecoveryLink($sub);
+            if (!empty($waUrl)) {
+                Response::redirect($waUrl);
+                return;
+            }
+        }
+
+        Session::setFlash('error', 'Número de WhatsApp da oficina não encontrado.');
+        Response::redirect(self::url('/financeiro?status=remarketing'));
     }
 }

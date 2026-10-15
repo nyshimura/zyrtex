@@ -191,9 +191,32 @@ class MercadoPagoService {
     ): array {
         $mode = $tenant['payment_mode'] ?? 'manual_pix';
         $tenantToken = trim((string)($tenant['mp_access_token'] ?? ''));
-        $externalReference = "os_payment:" . (int)$os['id'];
 
-        // 1. Se lojista optou por Mercado Pago Automático e possui token configurado
+        // Suporta tanto 1 OS quanto múltiplas OSs selecionadas
+        if (isset($os['ids']) && is_array($os['ids'])) {
+            $osIds = array_filter(array_map('intval', $os['ids']), fn($id) => $id > 0);
+        } elseif (isset($os['id'])) {
+            $osIds = [(int)$os['id']];
+        } elseif (is_array($os) && !empty($os)) {
+            $osIds = array_filter(array_map(fn($item) => (int)($item['id'] ?? 0), $os), fn($id) => $id > 0);
+        } else {
+            $osIds = [];
+        }
+
+        sort($osIds);
+        $externalReference = "os_payment:" . implode(',', $osIds);
+        $cacheKey = 'mp_pay_' . md5(($tenant['id'] ?? 0) . '_' . $externalReference . '_' . number_format($amount, 2, '.', ''));
+
+        // 1. Reutilização de QR Code Ativo (evita criar dezenas de transações no Mercado Pago)
+        if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION[$cacheKey])) {
+            $cached = $_SESSION[$cacheKey];
+            // Válido por 25 minutos (Mercado Pago expira em 30 min)
+            if ((time() - ($cached['created_at'] ?? 0)) < 1500 && !empty($cached['data']['pix_code'])) {
+                return $cached['data'];
+            }
+        }
+
+        // 2. Se lojista optou por Mercado Pago Automático e possui token configurado
         if ($mode === 'mercadopago' && !empty($tenantToken)) {
             $payload = [
                 'transaction_amount' => round($amount, 2),
@@ -209,6 +232,9 @@ class MercadoPagoService {
                 $payload['notification_url'] = $notificationUrl;
             }
 
+            // Chave de Idempotência determinística para a combinação de OSs e valor
+            $idempotencyKey = md5(($tenant['id'] ?? 0) . ':' . $externalReference . ':' . number_format($amount, 2, '.', ''));
+
             $ch = curl_init('https://api.mercadopago.com/v1/payments');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
@@ -216,7 +242,7 @@ class MercadoPagoService {
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Authorization: Bearer ' . $tenantToken,
                 'Content-Type: application/json',
-                'X-Idempotency-Key: ' . md5($externalReference . microtime(true))
+                'X-Idempotency-Key: ' . $idempotencyKey
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 12);
 
@@ -228,7 +254,7 @@ class MercadoPagoService {
                 $data = json_decode($response, true);
                 if (isset($data['id'])) {
                     $poi = $data['point_of_interaction']['transaction_data'] ?? [];
-                    return [
+                    $result = [
                         'success' => true,
                         'is_mock' => false,
                         'payment_id' => (string)$data['id'],
@@ -240,22 +266,28 @@ class MercadoPagoService {
                             : QrCodeService::pngUrl($poi['qr_code'] ?? $description, 240),
                         'ticket_url' => $poi['ticket_url'] ?? null
                     ];
+
+                    if (session_status() === PHP_SESSION_ACTIVE) {
+                        $_SESSION[$cacheKey] = ['created_at' => time(), 'data' => $result];
+                    }
+
+                    return $result;
                 }
             }
         }
 
-        // 2. Modo Pix Manual ou Fallback de Desenvolvimento da Oficina
+        // 3. Modo Pix Manual ou Fallback de Desenvolvimento da Oficina
         $pixKey = trim((string)($tenant['pix_key'] ?? 'financeiro@' . ($tenant['slug'] ?? 'oficina') . '.com.br'));
         $beneficiary = trim((string)($tenant['pix_beneficiary'] ?? ($tenant['business_name'] ?? 'Assistência Técnica')));
         $amountFormatted = number_format($amount, 2, '.', '');
-        $refShort = substr(preg_replace('/[^a-zA-Z0-9]/', '', $os['os_number'] ?? 'OS'), 0, 15);
+        $refShort = count($osIds) === 1 ? substr(preg_replace('/[^a-zA-Z0-9]/', '', $os['os_number'] ?? 'OS'), 0, 15) : 'ZYRTEX';
 
         // Gera payload EMV Pix do lojista
         $pixPayload = "00020126580014br.gov.bcb.pix0136" . $pixKey . "520400005303986540" . strlen($amountFormatted) . $amountFormatted . "5802BR5916" . substr($beneficiary, 0, 16) . "6009SAO PAULO62070503" . $refShort . "6304";
         $paymentId = 'mock_os_' . uniqid('', true);
         $qrcodeUrl = QrCodeService::pngUrl($pixPayload, 240);
 
-        return [
+        $result = [
             'success' => true,
             'is_mock' => true,
             'payment_id' => $paymentId,
@@ -265,6 +297,12 @@ class MercadoPagoService {
             'qrcode_url' => $qrcodeUrl,
             'ticket_url' => null
         ];
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION[$cacheKey] = ['created_at' => time(), 'data' => $result];
+        }
+
+        return $result;
     }
 
     /**

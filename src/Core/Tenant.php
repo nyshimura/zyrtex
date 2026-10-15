@@ -105,29 +105,19 @@ class Tenant {
             }
         }
 
-        // 5. Domínio Customizado (Produção - ex: www.oficinajoao.com.br)
+        // 5. Subdomínio da plataforma (ex: oficinajoao.zyrtex.com.br)
         $appConfig = require __DIR__ . '/../../config/app.php';
         $appHost = parse_url($appConfig['url'] ?? 'http://localhost/zyrtex', PHP_URL_HOST) ?? 'localhost';
 
         if ($host !== $appHost && $host !== 'localhost' && $host !== '127.0.0.1') {
-            $tenant = self::findByDomain($host);
-            if ($tenant) {
-                // Verificação de expiração de domínio (RN-Shield03)
-                if (!empty($tenant['expires_at']) && strtotime($tenant['expires_at']) < time() && $tenant['is_premium']) {
-                    $tenant['is_premium'] = 0;
-                    $tenant['domain_expired_warning'] = true;
-                }
-                self::$currentTenant = $tenant;
-                self::$isSaaSContext = false;
-                return self::$currentTenant;
-            }
-
-            // 6. Subdomínio da plataforma (ex: oficinajoao.zyrtex.com.br)
             $parts = explode('.', $host);
             if (count($parts) >= 3 && $parts[0] !== 'www') {
                 $subdomain = $parts[0];
                 $tenant = self::findBySlug($subdomain);
                 if ($tenant) {
+                    if (!empty($tenant['expires_at']) && strtotime($tenant['expires_at']) < time() && $tenant['is_premium']) {
+                        $tenant['is_premium'] = 0;
+                    }
                     self::$currentTenant = $tenant;
                     self::$isSaaSContext = false;
                     return self::$currentTenant;
@@ -135,7 +125,7 @@ class Tenant {
             }
         }
 
-        // 7. Por padrão, no domínio raiz ou localhost sem slug/parâmetro, o contexto é a PLATAFORMA SAAS ZYRTEX
+        // 6. Por padrão, no domínio raiz ou localhost sem slug/parâmetro, o contexto é a PLATAFORMA SAAS ZYRTEX
         self::$currentTenant = null;
         self::$isSaaSContext = true;
         return null;
@@ -143,10 +133,8 @@ class Tenant {
 
     /**
      * Retorna a URL pública amigável de uma oficina
-     * - Em desenvolvimento local: http://localhost/zyrtex/demo-assistencia
-     * - Em produção na raiz do host: https://meusite.com/demo-assistencia
-     * - Em produção com domínio próprio: https://www.oficina.com.br
-     * - Em produção com subdomínio (se configurado): https://demo-assistencia.zyrtex.com.br
+     * - Em produção com subdomínio Wildcard: https://oficina.zyrtex.com.br
+     * - Em produção ou local com URL amigável: https://zyrtex.com.br/oficina (ou http://localhost/zyrtex/oficina)
      */
     public static function publicUrl(?string $slug = null, string $path = ''): string {
         $appConfig = require __DIR__ . '/../../config/app.php';
@@ -156,15 +144,6 @@ class Tenant {
         // Se slug não foi fornecido, tenta pegar do tenant atual
         if (empty($slug)) {
             $slug = self::currentSlug() ?? '';
-        }
-
-        // Se o tenant possuir domínio próprio customizado ativo
-        if (!empty(self::$currentTenant['custom_domain']) && !empty(self::$currentTenant['is_premium'])) {
-            $customDomain = rtrim(self::$currentTenant['custom_domain'], '/');
-            if (!str_starts_with($customDomain, 'http://') && !str_starts_with($customDomain, 'https://')) {
-                $customDomain = 'https://' . $customDomain;
-            }
-            return empty($cleanPath) ? $customDomain : $customDomain . '/' . $cleanPath;
         }
 
         // Se habilitado subdomínios via .env (ex: ENABLE_SUBDOMAINS=true)
@@ -250,14 +229,6 @@ class Tenant {
     private static function findBySlug(string $slug): ?array {
         try {
             return Database::fetchOne("SELECT * FROM tenants WHERE slug = :slug AND active = 1 LIMIT 1", ['slug' => $slug]);
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
-    private static function findByDomain(string $domain): ?array {
-        try {
-            return Database::fetchOne("SELECT * FROM tenants WHERE custom_domain = :domain AND active = 1 LIMIT 1", ['domain' => $domain]);
         } catch (\Throwable) {
             return null;
         }

@@ -84,7 +84,45 @@ class AuthController {
                 return;
             }
 
-            // Realiza login
+            // Intercepta se o usuário tiver Autenticação em Dois Fatores (2FA Steam Guard)
+            if ((int)($user['two_factor_enabled'] ?? 0) === 1) {
+                $code = \Zyrtex\Services\MailService::generateSteamCode();
+                $codeHash = hash('sha256', $code);
+                $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+                Database::execute(
+                    "UPDATE users SET two_factor_code_hash = :hash, two_factor_expires_at = :exp WHERE id = :id",
+                    [
+                        'hash' => $codeHash,
+                        'exp' => $expiresAt,
+                        'id' => $user['id']
+                    ]
+                );
+
+                \Zyrtex\Services\MailService::sendTemplate('lojista_2fa_steam', $user['email'], $user['name'], [
+                    'user_name' => $user['name'],
+                    'user_email' => $user['email'],
+                    'token_2fa' => $code,
+                    'shop_name' => $user['business_name'] ?? 'Sua Oficina',
+                    'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+                    'date_time' => date('d/m/Y \à\s H:i:s'),
+                    'current_year' => date('Y')
+                ], (int)$user['tenant_id']);
+
+                Session::set('pending_2fa_user_id', (int)$user['id']);
+                Session::set('pending_2fa_tenant_data', [
+                    'id' => (int)$user['tenant_id'],
+                    'slug' => $user['tenant_slug'],
+                    'business_name' => $user['business_name']
+                ]);
+                Session::set('pending_2fa_email', $user['email']);
+                Session::set('pending_2fa_name', $user['name']);
+
+                Response::redirect('/login/2fa');
+                return;
+            }
+
+            // Realiza login normal
             Auth::login($user, [
                 'id' => (int)$user['tenant_id'],
                 'slug' => $user['tenant_slug'],
@@ -111,6 +149,24 @@ class AuthController {
     }
 
     /**
+     * Rota de Convite de Parceiro (/convite/{slug})
+     */
+    public function showInvite(Request $request, string $slug): void {
+        $slug = trim($slug);
+        $referrer = Database::fetchOne(
+            "SELECT id, business_name, slug, referral_code FROM tenants WHERE slug = :s OR referral_code = :s LIMIT 1",
+            ['s' => $slug]
+        );
+
+        if ($referrer) {
+            Session::set('referral_code', $referrer['referral_code'] ?: $referrer['slug']);
+            Session::set('referrer_name', $referrer['business_name']);
+        }
+
+        Response::redirect('/cadastro?convite=' . urlencode($slug));
+    }
+
+    /**
      * Exibe o formulário de cadastro de nova oficina (/cadastro)
      */
     public function showRegister(Request $request): void {
@@ -120,13 +176,30 @@ class AuthController {
             return;
         }
 
+        $conviteParam = trim((string)($request->get('convite') ?: $request->get('ref') ?: ''));
+        if (!empty($conviteParam)) {
+            $referrer = Database::fetchOne(
+                "SELECT id, business_name, slug, referral_code FROM tenants WHERE slug = :s OR referral_code = :s LIMIT 1",
+                ['s' => $conviteParam]
+            );
+            if ($referrer) {
+                Session::set('referral_code', $referrer['referral_code'] ?: $referrer['slug']);
+                Session::set('referrer_name', $referrer['business_name']);
+            }
+        }
+
         $niches = require __DIR__ . '/../../../config/niches.php';
         $old = Session::get('old_input', []);
         Session::remove('old_input');
 
+        $referralCode = Session::get('referral_code', '');
+        $referrerName = Session::get('referrer_name', '');
+
         View::render('public/register', [
             'niches' => $niches,
-            'old' => $old
+            'old' => $old,
+            'referralCode' => $referralCode,
+            'referrerName' => $referrerName
         ], 'saas');
     }
 
@@ -301,6 +374,14 @@ class AuthController {
 
             Database::commit();
 
+            // 4.1. Vincula indicação se o novo lojista veio de um convite de parceiro
+            $refCode = (string)($request->post('referral_code') ?: Session::get('referral_code', ''));
+            if (!empty($refCode)) {
+                \Zyrtex\Services\ReferralService::linkReferralOnRegister($tenantId, $refCode);
+                Session::remove('referral_code');
+                Session::remove('referrer_name');
+            }
+
             // 5. Autentica o novo usuário imediatamente
             $newUser = [
                 'id' => $userId,
@@ -334,5 +415,159 @@ class AuthController {
         Auth::logout();
         Session::setFlash('info', 'Você encerrou sua sessão com segurança.');
         Response::redirect('/login');
+    }
+
+    /**
+     * Tela de Autenticação em Dois Fatores (Zyrtex Guard / Steam Guard) (/login/2fa)
+     */
+    public function show2fa(Request $request): void {
+        $userId = Session::get('pending_2fa_user_id');
+        if (empty($userId)) {
+            Response::redirect('/login');
+            return;
+        }
+
+        $email = (string)Session::get('pending_2fa_email', '');
+        // Oculta e-mail parcialmente (ex: c*****s@gmail.com)
+        $atPos = strpos($email, '@');
+        if ($atPos !== false && $atPos > 2) {
+            $userPart = substr($email, 0, 1) . str_repeat('*', $atPos - 2) . substr($email, $atPos - 1, 1);
+            $emailHint = $userPart . substr($email, $atPos);
+        } else {
+            $emailHint = $email;
+        }
+
+        $tenantData = Session::get('pending_2fa_tenant_data', []);
+
+        View::render('public/auth/two_factor', [
+            'emailHint' => $emailHint,
+            'name' => Session::get('pending_2fa_name', 'Lojista'),
+            'shopName' => $tenantData['business_name'] ?? 'Sua Oficina',
+            'pageTitle' => 'Zyrtex Guard &bull; Código de Acesso Steam Style'
+        ], 'public');
+    }
+
+    /**
+     * Validação do Código 2FA Steam Guard (POST /login/2fa)
+     */
+    public function verify2fa(Request $request): void {
+        $userId = Session::get('pending_2fa_user_id');
+        if (empty($userId)) {
+            Response::redirect('/login');
+            return;
+        }
+
+        $code = strtoupper(trim((string)$request->post('code', '')));
+        if (empty($code)) {
+            Session::setFlash('error', 'Por favor, digite o código de 5 dígitos enviado ao seu e-mail.');
+            Response::redirect('/login/2fa');
+            return;
+        }
+
+        $codeHash = hash('sha256', $code);
+
+        $user = Database::fetchOne(
+            "SELECT u.*, t.slug as tenant_slug, t.business_name, t.active as tenant_active 
+             FROM users u 
+             JOIN tenants t ON u.tenant_id = t.id 
+             WHERE u.id = :id AND u.two_factor_code_hash = :hash AND u.two_factor_expires_at > NOW() 
+             LIMIT 1",
+            [
+                'id' => $userId,
+                'hash' => $codeHash
+            ]
+        );
+
+        if (!$user) {
+            Session::setFlash('error', 'Código de autenticação inválido ou expirado. Verifique os 5 caracteres e tente novamente.');
+            Response::redirect('/login/2fa');
+            return;
+        }
+
+        // Limpa o código utilizado
+        Database::execute(
+            "UPDATE users SET two_factor_code_hash = NULL, two_factor_expires_at = NULL WHERE id = :id",
+            ['id' => $userId]
+        );
+
+        $tenantData = Session::get('pending_2fa_tenant_data', [
+            'id' => (int)$user['tenant_id'],
+            'slug' => $user['tenant_slug'],
+            'business_name' => $user['business_name']
+        ]);
+
+        // Limpa variáveis temporárias de 2FA
+        Session::remove('pending_2fa_user_id');
+        Session::remove('pending_2fa_tenant_data');
+        Session::remove('pending_2fa_email');
+        Session::remove('pending_2fa_name');
+
+        // Autentica o usuário na sessão
+        Auth::login($user, $tenantData);
+
+        \Zyrtex\Core\Audit::log((int)$user['tenant_id'], (int)$user['id'], 'user_2fa_login_success', [
+            'email' => $user['email'],
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            'auth_method' => '2fa_steam_guard'
+        ]);
+
+        Session::setFlash('success', "✓ Código autenticado com sucesso! Bem-vindo, {$user['name']}.");
+
+        $intended = Session::get('intended_url');
+        if (!empty($intended)) {
+            Session::remove('intended_url');
+            Response::redirect($intended);
+            return;
+        }
+
+        $tenantSlug = $tenantData['slug'] ?? ($user['tenant_slug'] ?? 'demo-assistencia');
+        Response::redirect('/' . $tenantSlug . '/admin');
+    }
+
+    /**
+     * Reenvio de Código 2FA Steam Guard (POST /login/2fa/reenviar)
+     */
+    public function resend2fa(Request $request): void {
+        $userId = Session::get('pending_2fa_user_id');
+        if (empty($userId)) {
+            Response::redirect('/login');
+            return;
+        }
+
+        $user = Database::fetchOne(
+            "SELECT u.*, t.business_name FROM users u JOIN tenants t ON u.tenant_id = t.id WHERE u.id = :id LIMIT 1",
+            ['id' => $userId]
+        );
+
+        if (!$user) {
+            Response::redirect('/login');
+            return;
+        }
+
+        $code = \Zyrtex\Services\MailService::generateSteamCode();
+        $codeHash = hash('sha256', $code);
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+        Database::execute(
+            "UPDATE users SET two_factor_code_hash = :hash, two_factor_expires_at = :exp WHERE id = :id",
+            [
+                'hash' => $codeHash,
+                'exp' => $expiresAt,
+                'id' => $userId
+            ]
+        );
+
+        \Zyrtex\Services\MailService::sendTemplate('lojista_2fa_steam', $user['email'], $user['name'], [
+            'user_name' => $user['name'],
+            'user_email' => $user['email'],
+            'token_2fa' => $code,
+            'shop_name' => $user['business_name'] ?? 'Sua Oficina',
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+            'date_time' => date('d/m/Y \à\s H:i:s'),
+            'current_year' => date('Y')
+        ], (int)$user['tenant_id']);
+
+        Session::setFlash('info', '✓ Um novo código Zyrtex Guard foi enviado para seu e-mail.');
+        Response::redirect('/login/2fa');
     }
 }

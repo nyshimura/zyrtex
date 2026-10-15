@@ -24,6 +24,8 @@ use Zyrtex\Controllers\Admin\StockController;
 use Zyrtex\Controllers\Admin\PosController;
 use Zyrtex\Controllers\Admin\TeamController;
 use Zyrtex\Controllers\Admin\SupportController;
+use Zyrtex\Controllers\Admin\ReferralController;
+use Zyrtex\Controllers\Public\RecoveryController;
 use Zyrtex\Controllers\SuperAdmin\SuperAdminController;
 
 // 2. Carrega Variáveis de Ambiente
@@ -57,11 +59,21 @@ $router = new Router();
 // --- Rotas Públicas (Landing Page da Loja e Rastreio) ---
 $router->get('/', [HomeController::class, 'index']);
 $router->get('/termos', [HomeController::class, 'terms']);
+$router->get('/manifest.json', [HomeController::class, 'manifest']);
+$router->get('/manifest.webmanifest', [HomeController::class, 'manifest']);
+$router->get('/sw.js', [HomeController::class, 'serviceWorker']);
 
 // Rastreio da OS e Portal do Cliente (RF15)
 $router->get('/rastreio', [TrackingController::class, 'index']);
 $router->get('/portal', [PortalController::class, 'index']);
+$router->post('/portal/login', [PortalController::class, 'login']);
+$router->get('/portal/sair', [PortalController::class, 'logout']);
+$router->post('/portal/sair', [PortalController::class, 'logout']);
+$router->get('/portal/ativar', [PortalController::class, 'showActivate']);
+$router->post('/portal/ativar', [PortalController::class, 'processActivate']);
 $router->post('/portal/aprovar', [PortalController::class, 'approve']);
+$router->post('/portal/gerar-pix', [PortalController::class, 'generatePix']);
+$router->get('/portal/status-pagamento', [PortalController::class, 'checkPaymentStatus']);
 $router->post('/rastreio/aprovar-adicional', [TrackingController::class, 'approveAddition']);
 $router->post('/rastreio/rejeitar-adicional', [TrackingController::class, 'rejectAddition']);
 $router->post('/rastreio/aprovar-orcamento', [TrackingController::class, 'approveBudget']);
@@ -70,8 +82,18 @@ $router->post('/rastreio/aprovar-orcamento', [TrackingController::class, 'approv
 $router->get('/login', [AuthController::class, 'showLogin']);
 $router->post('/login', [AuthController::class, 'login']);
 
+// Autenticação em Dois Fatores (Zyrtex Guard / Steam Guard 2FA)
+$router->get('/login/2fa', [AuthController::class, 'show2fa']);
+$router->post('/login/2fa', [AuthController::class, 'verify2fa']);
+$router->post('/login/2fa/reenviar', [AuthController::class, 'resend2fa']);
+
 $router->get('/cadastro', [AuthController::class, 'showRegister']);
 $router->post('/cadastro', [AuthController::class, 'register']);
+$router->get('/convite/{slug}', [AuthController::class, 'showInvite']);
+
+// Resgate de Pedidos Abandonados (Remarketing com Desconto)
+$router->get('/recuperar/{token}', [RecoveryController::class, 'show']);
+$router->get('/recuperar/{token}/status', [RecoveryController::class, 'checkStatus']);
 
 $router->get('/logout', [AuthController::class, 'logout']);
 $router->post('/logout', [AuthController::class, 'logout']);
@@ -138,11 +160,15 @@ $router->post('/admin/configuracoes/upgrade-premium', [SettingsController::class
 $router->post('/admin/configuracoes/gerar-taxa-slug', [SettingsController::class, 'generateSlugFeeOrder']);
 $router->get('/admin/configuracoes/status-taxa-slug', [SettingsController::class, 'checkSlugFeeStatus']);
 $router->post('/admin/configuracoes/estornar-plano', [SettingsController::class, 'refundSubscription']);
+$router->post('/admin/configuracoes/seguranca', [SettingsController::class, 'updateSecurity']);
 
 // Suporte Técnico & Chamados do Lojista (/admin/suporte)
 $router->get('/admin/suporte', [SupportController::class, 'index']);
 $router->post('/admin/suporte/novo', [SupportController::class, 'store']);
 $router->post('/admin/suporte/responder', [SupportController::class, 'reply']);
+
+// Programa de Indicação da Oficina (Growth Loop)
+$router->get('/admin/indicacoes', [ReferralController::class, 'index']);
 
 // Webhook Oficial Mercado Pago do SaaS (RF02 / Monetização Automatizada)
 $router->post('/webhook/saas', [WebhookController::class, 'handleSaaS']);
@@ -182,6 +208,13 @@ $router->post('/' . $saSlug . '/executar-atualizacao', [SuperAdminController::cl
 $router->get('/' . $saSlug . '/broadcast', [SuperAdminController::class, 'broadcast']);
 $router->post('/' . $saSlug . '/broadcast', [SuperAdminController::class, 'updateBroadcast']);
 
+// Templates de E-mail & Disparos Transacionais (Drag & Drop Builder)
+$router->get('/' . $saSlug . '/emails', [SuperAdminController::class, 'emails']);
+$router->get('/' . $saSlug . '/emails/editar', [SuperAdminController::class, 'editEmailTemplate']);
+$router->post('/' . $saSlug . '/emails/salvar', [SuperAdminController::class, 'saveEmailTemplate']);
+$router->post('/' . $saSlug . '/emails/testar', [SuperAdminController::class, 'testEmailTemplate']);
+$router->post('/' . $saSlug . '/parametros/smtp-teste', [SuperAdminController::class, 'testSmtp']);
+
 // Central de Chamados & Suporte
 $router->get('/' . $saSlug . '/tickets', [SuperAdminController::class, 'tickets']);
 $router->post('/' . $saSlug . '/tickets/responder', [SuperAdminController::class, 'replyTicket']);
@@ -189,6 +222,8 @@ $router->post('/' . $saSlug . '/tickets/responder', [SuperAdminController::class
 // Painel Financeiro & Métricas MRR
 $router->get('/' . $saSlug . '/financeiro', [SuperAdminController::class, 'financial']);
 $router->get('/' . $saSlug . '/financeiro/exportar', [SuperAdminController::class, 'exportFinancialCsv']);
+$router->post('/' . $saSlug . '/remarketing/processar', [SuperAdminController::class, 'triggerRemarketingQueue']);
+$router->post('/' . $saSlug . '/remarketing/enviar', [SuperAdminController::class, 'sendRemarketing']);
 
 // 7. Despacha Requisição
 try {

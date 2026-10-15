@@ -71,6 +71,23 @@ class Request {
         return $this->method === 'GET';
     }
 
+    public function isAjax(): bool {
+        return (strtolower($this->server['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest')
+            || str_contains($this->server['HTTP_ACCEPT'] ?? '', 'application/json')
+            || str_contains($this->server['CONTENT_TYPE'] ?? '', 'application/json');
+    }
+
+    public function header(string $key, ?string $default = null): ?string {
+        $keyUpper = strtoupper(str_replace('-', '_', $key));
+        if (isset($this->server['HTTP_' . $keyUpper])) {
+            return $this->server['HTTP_' . $keyUpper];
+        }
+        if (isset($this->server[$keyUpper])) {
+            return $this->server[$keyUpper];
+        }
+        return $default;
+    }
+
     public function getPath(): string {
         return $this->uri;
     }

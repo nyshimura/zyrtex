@@ -26,7 +26,7 @@ O **Zyrtex** é um ecossistema SaaS completo desenvolvido sob a premissa de **Ze
 
 O modelo de negócio foi planejado para crescimento exponencial no Brasil:
 1. **Plano Gratuito Ilimitado (Freemium):** Sem limite de ordens de serviço, viabilizado por publicidade programática (**Google AdSense**) e doações voluntárias via Pix.
-2. **Plano com Domínio Próprio:** R$ 197/ano para conexões de domínios customizados (`www.suaoficina.com.br`) com supressão total de anúncios.
+2. **Plano Anual Sem Anúncios:** R$ 197/ano para supressão total de anúncios (vitrine, rastreio de OS e portal do cliente) com subdomínio exclusivo (`oficina.zyrtex.com.br`) e URL amigável (`zyrtex.com.br/oficina`).
 3. **Monetização de Serviços Extra:** Micro-taxas automatizadas via Pix Mercado Pago para alterações de rota/slug ou readequação de nicho de bancada.
 
 ---
@@ -35,7 +35,7 @@ O modelo de negócio foi planejado para crescimento exponencial no Brasil:
 
 ### 🏬 1. Multi-Tenant Nativo & Segmentação por Nicho
 - **Isolamento Lógico:** Banco de dados seguro com separação rigorosa por `tenant_id`.
-- **Roteamento Híbrido:** Suporte tanto a subdomínios (`oficina.zyrtex.com.br`), parâmetros de desenvolvimento (`localhost/zyrtex?tenant=slug`) e domínios próprios (`www.minhaoficina.com.br`).
+- **Roteamento Híbrido:** Suporte a subdomínios Wildcard (`oficina.zyrtex.com.br`), parâmetros de desenvolvimento (`localhost/zyrtex?tenant=slug`) e URLs amigáveis (`zyrtex.com.br/oficina`).
 - **4 Nichos Especializados:**
   - 📱 **Smartphones & Tablets:** Controle de IMEI, padrão/senha de desenho de tela, saúde de bateria e checklist de touch, câmeras e conectividade.
   - 💻 **PCs & Notebooks:** Número de série/Service Tag, processador, RAM, SSD/HD, carregador e teste de cooler/portas.

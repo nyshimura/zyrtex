@@ -43,12 +43,13 @@ class AIService {
 
         // 1. Se possuir chave, tenta chamada via API
         if (!empty($apiKey)) {
-            if ($provider === 'openai') {
+            if ($provider === 'gemini' || str_starts_with($apiKey, 'AIza')) {
+                $result = self::callGemini($apiKey, $systemPrompt, $userPrompt);
+            } elseif ($provider === 'openai' || str_starts_with($apiKey, 'sk-')) {
                 $result = self::callOpenAI($apiKey, $systemPrompt, $userPrompt);
-            } elseif ($provider === 'groq') {
+            } elseif ($provider === 'groq' || str_starts_with($apiKey, 'gsk_')) {
                 $result = self::callGroq($apiKey, $systemPrompt, $userPrompt);
             } else {
-                // Padrão: Hugging Face Serverless Inference API
                 $result = self::callHuggingFace($apiKey, $systemPrompt, $userPrompt);
             }
 
@@ -87,9 +88,11 @@ class AIService {
                     . "Gere a mensagem direta com emojis profissionais para enviar pelo WhatsApp:";
 
         if (!empty($apiKey)) {
-            if ($provider === 'openai') {
+            if ($provider === 'gemini' || str_starts_with($apiKey, 'AIza')) {
+                $result = self::callGemini($apiKey, $systemPrompt, $userPrompt);
+            } elseif ($provider === 'openai' || str_starts_with($apiKey, 'sk-')) {
                 $result = self::callOpenAI($apiKey, $systemPrompt, $userPrompt);
-            } elseif ($provider === 'groq') {
+            } elseif ($provider === 'groq' || str_starts_with($apiKey, 'gsk_')) {
                 $result = self::callGroq($apiKey, $systemPrompt, $userPrompt);
             } else {
                 $result = self::callHuggingFace($apiKey, $systemPrompt, $userPrompt);
@@ -115,25 +118,70 @@ class AIService {
     }
 
     /**
-     * Chamada à API Serverless do Hugging Face via cURL
+     * Chamada à API do Google Gemini (Totalmente Gratuita no Google AI Studio)
      */
-    private static function callHuggingFace(string $token, string $system, string $user): array {
-        // Modelo open-source veloz e de alta acurácia em português
-        $model = 'Qwen/Qwen2.5-7B-Instruct';
-        $url = "https://api-inference.huggingface.co/models/{$model}";
-
-        $messages = [
-            ['role' => 'system', 'content' => $system],
-            ['role' => 'user', 'content' => $user]
-        ];
+    private static function callGemini(string $apiKey, string $system, string $user): array {
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . urlencode($apiKey);
 
         $payload = [
-            'inputs' => "<|im_start|>system\n{$system}<|im_end|>\n<|im_start|>user\n{$user}<|im_end|>\n<|im_start|>assistant\n",
-            'parameters' => [
-                'max_new_tokens' => 280,
+            'contents' => [
+                [
+                    'role' => 'user',
+                    'parts' => [
+                        ['text' => $system . "\n\n" . $user]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
                 'temperature' => 0.4,
-                'return_full_text' => false
+                'maxOutputTokens' => 300
             ]
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200 && $response) {
+            $data = json_decode($response, true);
+            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            if (!empty($text)) {
+                return [
+                    'success' => true,
+                    'is_fallback' => false,
+                    'provider' => 'gemini',
+                    'model' => 'gemini-1.5-flash',
+                    'text' => trim($text)
+                ];
+            }
+        }
+
+        return ['success' => false, 'error' => "HTTP {$httpCode} no Gemini", 'text' => ''];
+    }
+
+    /**
+     * Chamada à API do Hugging Face via Router v1
+     */
+    private static function callHuggingFace(string $token, string $system, string $user): array {
+        $url = 'https://router.huggingface.co/v1/chat/completions';
+        $model = 'meta-llama/Llama-3.1-8B-Instruct';
+
+        $payload = [
+            'model' => $model,
+            'messages' => [
+                ['role' => 'system', 'content' => $system],
+                ['role' => 'user', 'content' => $user]
+            ],
+            'max_tokens' => 280,
+            'temperature' => 0.4
         ];
 
         $ch = curl_init($url);
@@ -145,6 +193,7 @@ class AIService {
             'Content-Type: application/json'
         ]);
         curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -152,24 +201,14 @@ class AIService {
 
         if ($httpCode === 200 && $response) {
             $data = json_decode($response, true);
-            $generatedText = '';
-            if (is_array($data)) {
-                if (isset($data[0]['generated_text'])) {
-                    $generatedText = trim($data[0]['generated_text']);
-                } elseif (isset($data['generated_text'])) {
-                    $generatedText = trim($data['generated_text']);
-                }
-            }
-
-            if (!empty($generatedText)) {
-                // Limpa tags eventuais de chat template
-                $cleaned = preg_replace('/<\|im_end\|>|<\|im_start\|>assistant/i', '', $generatedText);
+            $content = $data['choices'][0]['message']['content'] ?? '';
+            if (!empty($content)) {
                 return [
                     'success' => true,
                     'is_fallback' => false,
                     'provider' => 'huggingface',
                     'model' => $model,
-                    'text' => trim($cleaned)
+                    'text' => trim($content)
                 ];
             }
         }
@@ -198,6 +237,7 @@ class AIService {
             'Content-Type: application/json'
         ]);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -215,7 +255,7 @@ class AIService {
     }
 
     /**
-     * Chamada à API da Groq (Fallback ultrarrápido)
+     * Chamada à API da Groq (Ultrarrápida e Gratuita)
      */
     private static function callGroq(string $token, string $system, string $user): array {
         $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
@@ -235,6 +275,7 @@ class AIService {
             'Content-Type: application/json'
         ]);
         curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -252,33 +293,90 @@ class AIService {
     }
 
     /**
-     * Motor Heurístico de Simplificação de Laudo Técnico (Regras de Bancada)
+     * Motor Heurístico Inteligente de Simplificação de Laudo Técnico (Regras de Bancada & NLP Leve)
      */
     private static function generateRuleBasedSimplification(string $diag, string $eq): string {
-        $d = mb_strtolower($diag);
+        $d = mb_strtolower(trim($diag));
         $eqName = !empty($eq) ? "do seu " . trim($eq) : "do seu equipamento";
 
-        if (str_contains($d, 'tela') || str_contains($d, 'display') || str_contains($d, 'touch') || str_contains($d, 'vidro')) {
-            return "Identificamos que o display {$eqName} sofreu danos físicos que afetam a exibição de imagem e a resposta ao toque. Realizaremos a substituição completa por uma nova tela com calibração e garantia de 90 dias.";
+        // Variações de Abertura
+        $openers = [
+            "Nossa análise laboratorial detalhada {$eqName} identificou que ",
+            "Avaliamos minuciosamente o seu equipamento e constatamos que ",
+            "Durante os testes especializados na bancada técnica, detectamos que ",
+            "Concluímos a avaliação técnica {$eqName} e localizamos que "
+        ];
+        $opener = $openers[array_rand($openers)];
+
+        // Variações de Fechamento / Garantia
+        $closers = [
+            " Faremos os testes laboratoriais completos para assegurar o funcionamento perfeito com garantia legal de 90 dias.",
+            " O procedimento inclui calibração completa e testes rigorosos para devolver seu aparelho 100% confiável e com garantia.",
+            " Todas as intervenções seguem nosso padrão técnico de alta precisão com garantia legal e total segurança.",
+            " Realizaremos a revisão e conferência de todas as funções para garantir máxima durabilidade com garantia."
+        ];
+        $closer = $closers[array_rand($closers)];
+
+        // 1. Tela / Vidro / Display / Touch / AMOLED / OLED
+        if (str_contains($d, 'tela') || str_contains($d, 'display') || str_contains($d, 'touch') || str_contains($d, 'vidro') || str_contains($d, 'amoled') || str_contains($d, 'oled') || str_contains($d, 'frontal')) {
+            $desc = "o display/vidro sofreu avarias físicas que prejudicam a nitidez da imagem e a sensibilidade ao toque. Realizaremos a substituição completa da peça por um novo módulo original/homologado com calibração.";
+            return $opener . $desc . $closer;
         }
 
-        if (str_contains($d, 'bateria') || str_contains($d, 'ciclo') || str_contains($d, 'estufad') || str_contains($d, 'autonomia')) {
-            return "Constatamos que a bateria {$eqName} atingiu o limite de vida útil ou sofreu degradação química, ocasionando descarregamento rápido. Faremos a troca por uma bateria nova homologada com saúde 100%.";
+        // 2. Bateria / Autonomia / Desligando
+        if (str_contains($d, 'bateria') || str_contains($d, 'ciclo') || str_contains($d, 'estufad') || str_contains($d, 'autonomia') || str_contains($d, 'descarregando') || str_contains($d, 'saúde') || str_contains($d, 'drenando')) {
+            $desc = "a bateria atingiu o limite de ciclos úteis ou apresentou degradação química, causando descarregamento rápido e instabilidade. Efetuaremos a troca por uma bateria nova de alta capacidade e saúde 100%.";
+            return $opener . $desc . $closer;
         }
 
-        if (str_contains($d, 'conector') || str_contains($d, 'carga') || str_contains($d, 'tipo c') || str_contains($d, 'lightning') || str_contains($d, 'solda fria')) {
-            return "O conector de carregamento {$eqName} apresenta desgaste interno nos pinos de contato, impedindo a passagem correta de energia. Faremos a substituição do conector para restabelecer a carga rápida com segurança.";
+        // 3. Conector / Carga / Entrada Tipo-C / Lightning
+        if (str_contains($d, 'conector') || str_contains($d, 'carga') || str_contains($d, 'dock') || str_contains($d, 'tipo c') || str_contains($d, 'type-c') || str_contains($d, 'lightning') || str_contains($d, 'não carrega') || str_contains($d, 'mau contato')) {
+            $desc = "o conector de carregamento apresenta desgaste físico ou folga nos pinos de contato, impedindo a passagem regular de energia. Faremos a troca da sub-placa/conector para restabelecer a recarga rápida com total segurança.";
+            return $opener . $desc . $closer;
         }
 
-        if (str_contains($d, 'oxida') || str_contains($d, 'molhad') || str_contains($d, 'umidade') || str_contains($d, 'água') || str_contains($d, 'curto')) {
-            return "Detectamos presença de umidade e oxidação em componentes da placa principal {$eqName}. Realizaremos um banho químico ultrassônico para desoxidação profunda, protegendo as trilhas eletrônicas.";
+        // 4. Oxidação / Contato com Líquido / Água
+        if (str_contains($d, 'oxida') || str_contains($d, 'molhad') || str_contains($d, 'umidade') || str_contains($d, 'água') || str_contains($d, 'banho químico') || str_contains($d, 'corrosão')) {
+            $desc = "houve entrada de umidade, provocando oxidação em trilhas e componentes internos da placa. Executaremos desoxidação química em cuba ultrassônica, secagem térmica e restauração das linhas eletrônicas.";
+            return $opener . $desc . $closer;
         }
 
-        if (str_contains($d, 'software') || str_contains($d, 'loop') || str_contains($d, 'sistema') || str_contains($d, 'travado') || str_contains($d, 'firmware')) {
-            return "Identificamos corrupção no sistema operacional {$eqName}, que causa travamentos ou reinicializações constantes. Faremos a reinstalação limpa do software oficial para restaurar a estabilidade original.";
+        // 5. Placa Principal / Curto / CI / Microssolda
+        if (str_contains($d, 'placa') || str_contains($d, 'curto') || str_contains($d, 'ci') || str_contains($d, 'pmic') || str_contains($d, 'solda') || str_contains($d, 'reballing') || str_contains($d, 'tristar') || str_contains($d, 'circuito') || str_contains($d, 'capacitor') || str_contains($d, 'não liga')) {
+            $desc = "há um componente em curto-circuito na placa principal que impede o fluxo normal de energia ou a inicialização. Realizaremos o reparo avançado de microssolda para substituir o componente eletrônico danificado.";
+            return $opener . $desc . $closer;
         }
 
-        // Genérico refinado
-        return "Nossa equipe realizou a análise técnica detalhada {$eqName} e localizou o componente com falha. Executaremos a substituição da peça danificada e testes laboratoriais completos para assegurar o funcionamento perfeito com garantia legal.";
+        // 6. Áudio / Alto-falante / Microfone / Auricular
+        if (str_contains($d, 'áudio') || str_contains($d, 'audio') || str_contains($d, 'som') || str_contains($d, 'alto-falante') || str_contains($d, 'alto falante') || str_contains($d, 'microfone') || str_contains($d, 'auricular') || str_contains($d, 'mudo') || str_contains($d, 'chiando') || str_contains($d, 'viva-voz')) {
+            $desc = "o módulo de áudio/microfone apresenta falha de diafragma ou obstrução nos canais acústicos. Realizaremos a substituição do componente sonoro para que chamadas e mídias voltem a tocar com clareza cristalina.";
+            return $opener . $desc . $closer;
+        }
+
+        // 7. Câmeras / Lente / Foco
+        if (str_contains($d, 'câmera') || str_contains($d, 'camera') || str_contains($d, 'foco') || str_contains($d, 'lente') || str_contains($d, 'vidro da câmera')) {
+            $desc = "o módulo óptico ou a lente de proteção sofreu impacto, gerando fotos embaçadas ou trepidação no foco. Realizaremos a troca do sensor/lente com vedação anti-poeira para restabelecer fotos perfeitas.";
+            return $opener . $desc . $closer;
+        }
+
+        // 8. Software / Sistema / Travamento / Vírus
+        if (str_contains($d, 'software') || str_contains($d, 'loop') || str_contains($d, 'sistema') || str_contains($d, 'travado') || str_contains($d, 'firmware') || str_contains($d, 'formata') || str_contains($d, 'reiniciando')) {
+            $desc = "o sistema operacional corrompeu arquivos essenciais de inicialização, provocando travamentos ou reinicializações. Faremos a restauração limpa do software original com atualização de segurança.";
+            return $opener . $desc . $closer;
+        }
+
+        // 9. Botões / Carcaça / Tampa Traseira
+        if (str_contains($d, 'botão') || str_contains($d, 'botao') || str_contains($d, 'power') || str_contains($d, 'volume') || str_contains($d, 'carcaça') || str_contains($d, 'tampa') || str_contains($d, 'chassi')) {
+            $desc = "há desgaste mecânico ou deformação física nos botões ou na estrutura externa do aparelho. Faremos a troca dos flex de acionamento e alinhamento do chassi para restabelecer o clique suave original.";
+            return $opener . $desc . $closer;
+        }
+
+        // 10. Dinâmico: incorpora o texto real digitado pelo técnico
+        $cleanDiag = preg_replace('/\s+/', ' ', trim($diag));
+        if (mb_strlen($cleanDiag) > 130) {
+            $cleanDiag = mb_substr($cleanDiag, 0, 127) . '...';
+        }
+
+        return $opener . "a necessidade de intervenção especializada referente a: \"{$cleanDiag}\". Nossa equipe executará a substituição pontual dos itens avariados e revisará os circuitos de apoio." . $closer;
     }
 }

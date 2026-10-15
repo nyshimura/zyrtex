@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#3730a3" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+    <linearGradient id="wrenchGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Fundo com cantos arredondados (estilo app icon iOS / Android maskable) -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  
+  <!-- Círculo Interno Suave -->
+  <circle cx="256" cy="256" r="190" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.08" stroke-width="4"/>
+
+  <!-- Letra Z Estilizada & Símbolo Tecnológico de Assistência -->
+  <g filter="url(#shadow)">
+    <!-- Smartphone Frame -->
+    <rect x="156" y="106" width="200" height="300" rx="28" fill="none" stroke="url(#wrenchGrad)" stroke-width="20"/>
+    <line x1="236" y1="136" x2="276" y2="136" stroke="#818cf8" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="256" cy="376" r="10" fill="#38bdf8"/>
+    
+    <!-- Relâmpago / Z Central de Alta Energia -->
+    <path d="M280 186 L216 266 L266 266 L232 326 L306 246 L256 246 Z" fill="#38bdf8"/>
+  </g>
+</svg>

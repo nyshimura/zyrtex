@@ -52,6 +52,8 @@ class SettingsController {
             ['id' => $tenantId]
         );
 
+        $annualPrice = Database::fetchValue("SELECT config_value FROM saas_settings WHERE config_key = 'annual_domain_price' LIMIT 1") ?: '197.00';
+
         View::render('admin/settings', [
             'tenant' => $tenant,
             'user' => $user,
@@ -59,7 +61,8 @@ class SettingsController {
             'address' => $address,
             'hours' => $hours,
             'printFormats' => $printFormatsConfig,
-            'subscriptions' => $subscriptions
+            'subscriptions' => $subscriptions,
+            'annualPrice' => $annualPrice
         ], 'admin');
     }
 
@@ -367,8 +370,21 @@ class SettingsController {
         Auth::requireAuth();
         $tenantId = Auth::tenantId();
 
-        $aiProvider = (string)$request->post('ai_provider', 'huggingface');
         $apiKey = trim((string)$request->post('ai_api_key', ''));
+        $aiProvider = (string)$request->post('ai_provider', '');
+
+        // Auto-detecção inteligente do provedor pelo prefixo do token
+        if (empty($aiProvider)) {
+            if (str_starts_with($apiKey, 'sk-')) {
+                $aiProvider = 'openai';
+            } elseif (str_starts_with($apiKey, 'gsk_')) {
+                $aiProvider = 'groq';
+            } elseif (str_starts_with($apiKey, 'AIza')) {
+                $aiProvider = 'gemini';
+            } else {
+                $aiProvider = 'huggingface';
+            }
+        }
 
         try {
             Database::execute(
@@ -385,7 +401,7 @@ class SettingsController {
     }
 
     /**
-     * Atualização do Endereço da Vitrine / Domínio Próprio (POST /admin/configuracoes/endereco)
+     * Atualização do Endereço da Vitrine / Subdomínio (POST /admin/configuracoes/endereco)
      */
     public function updateAddress(Request $request): void {
         Auth::requireAuth();
@@ -400,51 +416,16 @@ class SettingsController {
         $isPremium = (int)($tenant['is_premium'] ?? 0) === 1;
 
         $rawSlug = trim((string)$request->post('slug', ''));
-        $rawDomain = trim((string)$request->post('custom_domain', ''));
-        $feePaid = $request->post('fee_paid') === '1';
-
         $cleanSlug = preg_replace('/[^a-z0-9\-]/', '', strtolower(str_replace(' ', '-', $rawSlug)));
         $cleanSlug = trim(preg_replace('/-+/', '-', $cleanSlug), '-');
-
-        $cleanDomain = preg_replace('#^https?://#i', '', rtrim(strtolower($rawDomain), '/'));
 
         $reservedSlugs = [
             'admin', 'superadmin', 'login', 'cadastro', 'logout', 
             'rastreio', 'portal', 'webhook', 'ajax', 'assets', 'css', 
-            'js', 'images', 'favicon.ico', 'api', 'saas'
+            'js', 'images', 'favicon.ico', 'api', 'saas', 'manifest.json', 'sw.js'
         ];
 
-        // 1. Se tentou salvar Domínio Próprio
-        if (!empty($cleanDomain)) {
-            if (!$isPremium) {
-                Session::setFlash('error', 'Domínio próprio (.com.br) é um recurso exclusivo do Plano Premium. Faça upgrade para conectar seu domínio.');
-                Response::redirect('/admin/configuracoes#publica');
-                return;
-            }
-
-            // Verifica se o domínio já está em uso por outra loja
-            $domainExists = Database::fetchOne(
-                "SELECT id, business_name FROM tenants WHERE custom_domain = :domain AND id != :id LIMIT 1",
-                ['domain' => $cleanDomain, 'id' => $tenantId]
-            );
-            if ($domainExists) {
-                Session::setFlash('error', "O domínio '{$cleanDomain}' já está cadastrado em outra oficina no Zyrtex.");
-                Response::redirect('/admin/configuracoes#publica');
-                return;
-            }
-
-            Database::execute(
-                "UPDATE tenants SET custom_domain = :domain WHERE id = :id",
-                ['domain' => $cleanDomain, 'id' => $tenantId]
-            );
-            Session::setFlash('success', "Domínio próprio '{$cleanDomain}' salvo com sucesso! Aponte as entradas DNS conforme as instruções.");
-        } elseif ($isPremium && empty($cleanDomain) && !empty($tenant['custom_domain'])) {
-            // Removeu o domínio customizado
-            Database::execute("UPDATE tenants SET custom_domain = NULL WHERE id = :id", ['id' => $tenantId]);
-            Session::setFlash('info', 'Domínio próprio desvinculado. Sua vitrine agora opera no endereço padrão.');
-        }
-
-        // 2. Se tentou alterar o Slug
+        // Se tentou alterar o Slug/Endereço da loja
         if (!empty($cleanSlug) && $cleanSlug !== $tenant['slug']) {
             if (!$isPremium) {
                 Session::setFlash('warning', 'No Plano Free, a alteração de endereço exige o pagamento da taxa de R$ 19,90 ao SaaS via Mercado Pago. O novo endereço é ativado automaticamente pelo Webhook.');
@@ -663,7 +644,7 @@ class SettingsController {
                 ['expires_at' => $nextYear, 'id' => $tenantId]
             );
 
-            Session::setFlash('success', '★ Parabéns! Seu Plano Premium foi ativado com sucesso! Você agora tem alterações de endereço ilimitadas e domínio .com.br próprio liberado.');
+            Session::setFlash('success', '★ Parabéns! Seu Plano Anual Sem Anúncios foi ativado com sucesso! Sua vitrine, rastreio de OS e portal do cliente estão 100% livres de anúncios por 1 ano.');
             Response::redirect('/admin/configuracoes#publica');
         } catch (\Throwable $e) {
             Session::setFlash('error', 'Falha ao ativar Plano Premium: ' . $e->getMessage());
@@ -785,9 +766,9 @@ class SettingsController {
             );
 
             // Reverte os efeitos do recurso adquirido
-            if ($sub['plan_type'] === 'annual_domain') {
+            if ($sub['plan_type'] === 'annual_domain' || $sub['plan_type'] === 'annual_premium') {
                 Database::execute(
-                    "UPDATE tenants SET custom_domain = NULL, is_premium = 0 WHERE id = :id",
+                    "UPDATE tenants SET is_premium = 0 WHERE id = :id",
                     ['id' => $tenantId]
                 );
             }
@@ -809,6 +790,40 @@ class SettingsController {
         }
 
         Response::redirect('/admin/configuracoes#publica');
+    }
+
+    /**
+     * Atualiza Configurações de Segurança e 2FA Steam Guard (/admin/configuracoes/seguranca)
+     */
+    public function updateSecurity(Request $request): void {
+        Auth::requireAuth();
+        $user = Auth::user();
+        $userId = (int)($user['id'] ?? 0);
+        $tenantId = Auth::tenantId();
+
+        $twoFactor = (int)$request->post('two_factor_enabled', 0);
+
+        Database::execute(
+            "UPDATE users SET two_factor_enabled = :val WHERE id = :id",
+            [
+                'val' => $twoFactor,
+                'id' => $userId
+            ]
+        );
+
+        Audit::log($tenantId, $userId, 'user_2fa_toggle', [
+            'two_factor_enabled' => $twoFactor,
+            'user_email' => $user['email'] ?? '',
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'
+        ]);
+
+        if ($twoFactor === 1) {
+            Session::setFlash('success', '✓ Autenticação em Dois Fatores (Zyrtex Guard) ativada com sucesso! No próximo login você receberá o código estilo Steam Guard no seu e-mail.');
+        } else {
+            Session::setFlash('info', 'Autenticação em Dois Fatores desativada com sucesso.');
+        }
+
+        Response::redirect('/admin/configuracoes#seguranca');
     }
 }
 

@@ -116,7 +116,50 @@ class ClientController {
             );
 
             $newId = Database::lastInsertId();
-            Session::setFlash('success', "Cliente '{$name}' cadastrado com sucesso!");
+            $flashMsg = "Cliente '{$name}' cadastrado com sucesso!";
+
+            // Disparo automático do E-mail de Ativação de Conta se houver e-mail informado
+            if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                try {
+                    $rawToken = bin2hex(random_bytes(32));
+                    $tokenHash = hash('sha256', $rawToken);
+                    $expiresAt = date('Y-m-d H:i:s', strtotime('+7 days'));
+
+                    Database::execute(
+                        "UPDATE clients 
+                         SET status = 'pending_activation', 
+                             activation_token_hash = :hash, 
+                             activation_expires_at = :exp 
+                         WHERE id = :id",
+                        [
+                            'hash' => $tokenHash,
+                            'exp' => $expiresAt,
+                            'id' => $newId
+                        ]
+                    );
+
+                    $tenant = Auth::currentTenant();
+                    $shopName = $tenant['business_name'] ?? 'Nossa Assistência Técnica';
+                    $shopPhone = $tenant['phone'] ?? '';
+                    $activationUrl = Response::url('/portal/ativar?token=' . $rawToken);
+
+                    \Zyrtex\Services\MailService::sendTemplate('client_activation', $email, $name, [
+                        'client_name' => $name,
+                        'client_email' => $email,
+                        'activation_url' => $activationUrl,
+                        'shop_name' => $shopName,
+                        'shop_phone' => $shopPhone,
+                        'current_year' => date('Y'),
+                        'app_url' => Response::url('/')
+                    ], $tenantId);
+
+                    $flashMsg .= " Um e-mail com o link seguro para ativar a conta foi enviado para {$email}.";
+                } catch (\Throwable $mailEx) {
+                    // Não quebra o cadastro do cliente caso o servidor de e-mail oscile
+                }
+            }
+
+            Session::setFlash('success', $flashMsg);
 
             // Se veio parâmetro de retorno para OS
             $returnTo = $request->post('return_to');

@@ -177,4 +177,100 @@ class HomeController {
             'pageTitle' => 'Termos de Uso & Política de Privacidade (LGPD) • Zyrtex SaaS'
         ], 'saas');
     }
+
+    /**
+     * Retorna o Manifesto PWA dinâmico (/manifest.json e /manifest.webmanifest)
+     * Personaliza o nome da loja, cor temática e ícone para instalação no smartphone.
+     */
+    public function manifest(Request $request): void {
+        header('Content-Type: application/manifest+json; charset=utf-8');
+
+        $tenant = Tenant::current();
+        if (!$tenant) {
+            $slugParam = $request->query('slug');
+            if (!empty($slugParam)) {
+                try {
+                    $tenant = Database::fetchOne("SELECT * FROM tenants WHERE slug = :slug AND active = 1 LIMIT 1", ['slug' => $slugParam]);
+                } catch (\Throwable) {}
+            }
+        }
+
+        $appConfig = require __DIR__ . '/../../../config/app.php';
+        $baseUrl = rtrim($appConfig['url'] ?? 'http://localhost/zyrtex', '/');
+
+        $paletteMap = [
+            'indigo'  => '#4f46e5',
+            'emerald' => '#059669',
+            'blue'    => '#2563eb',
+            'amber'   => '#d97706',
+            'rose'    => '#e11d48',
+            'violet'  => '#7c3aed',
+            'cyan'    => '#0891b2',
+        ];
+
+        if ($tenant && !empty($tenant['business_name'])) {
+            $name = $tenant['business_name'];
+            $shortName = mb_substr($tenant['business_name'], 0, 15);
+            $startUrl = Tenant::publicUrl($tenant['slug'] ?? null);
+            $rawColor = $tenant['theme_color'] ?? 'indigo';
+            $themeColor = $paletteMap[$rawColor] ?? (str_starts_with($rawColor, '#') ? $rawColor : '#4f46e5');
+        } else {
+            $name = 'Zyrtex - Assistência Técnica & Gestão';
+            $shortName = 'Zyrtex';
+            $startUrl = $baseUrl . '/';
+            $themeColor = '#4f46e5';
+        }
+
+        $manifest = [
+            'name' => $name,
+            'short_name' => $shortName,
+            'description' => 'Sistema de Gestão, Ordens de Serviço e Prontuário Digital para Assistências Técnicas.',
+            'start_url' => $startUrl,
+            'scope' => $baseUrl . '/',
+            'display' => 'standalone',
+            'background_color' => '#0f172a',
+            'theme_color' => $themeColor,
+            'orientation' => 'portrait-primary',
+            'lang' => 'pt-BR',
+            'categories' => ['business', 'productivity', 'utilities'],
+            'icons' => [
+                [
+                    'src' => $baseUrl . '/assets/images/pwa-icon-192.png',
+                    'sizes' => '192x192',
+                    'type' => 'image/png',
+                    'purpose' => 'any maskable'
+                ],
+                [
+                    'src' => $baseUrl . '/assets/images/pwa-icon-512.png',
+                    'sizes' => '512x512',
+                    'type' => 'image/png',
+                    'purpose' => 'any maskable'
+                ],
+                [
+                    'src' => $baseUrl . '/assets/images/pwa-icon.svg',
+                    'sizes' => 'any',
+                    'type' => 'image/svg+xml',
+                    'purpose' => 'any'
+                ]
+            ]
+        ];
+
+        echo json_encode($manifest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        exit;
+    }
+
+    /**
+     * Retorna o Service Worker (/sw.js)
+     */
+    public function serviceWorker(Request $request): void {
+        header('Content-Type: application/javascript; charset=utf-8');
+        header('Service-Worker-Allowed: /');
+        $swPath = __DIR__ . '/../../../public/sw.js';
+        if (file_exists($swPath)) {
+            readfile($swPath);
+        } else {
+            echo "console.log('Zyrtex Service Worker Active');";
+        }
+        exit;
+    }
 }

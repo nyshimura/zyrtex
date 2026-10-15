@@ -131,36 +131,51 @@ class WebhookController {
         // Se for pagamento de Ordem de Serviço (OS) pelo cliente da oficina
         if (str_starts_with($externalReference, 'os_payment:') || str_starts_with($externalReference, 'os:')) {
             $parts = explode(':', $externalReference);
-            $osId = (int)($parts[1] ?? 0);
-            if ($osId > 0) {
-                $os = Database::fetchOne("SELECT * FROM service_orders WHERE id = :id LIMIT 1", ['id' => $osId]);
-                if ($os) {
-                    Database::execute(
-                        "UPDATE service_orders 
-                         SET payment_status = 'paid', 
-                             payment_method = 'mercadopago',
-                             status = CASE WHEN status = 'budget' THEN 'approved' ELSE status END
-                         WHERE id = :id",
-                        ['id' => $osId]
-                    );
+            $rawIds = explode(',', $parts[1] ?? '');
+            $osIds = array_filter(array_map('intval', $rawIds), fn($id) => $id > 0);
 
-                    try {
-                        Database::execute(
-                            "INSERT INTO audit_logs (tenant_id, action, details_json, ip_address) 
-                             VALUES (:tenant_id, 'os_payment_approved_mercadopago', :details, :ip)",
-                            [
-                                'tenant_id' => (int)$os['tenant_id'],
-                                'details' => json_encode([
-                                    'os_id' => $osId,
-                                    'os_number' => $os['os_number'],
-                                    'total_value' => (float)$os['total_value'],
-                                    'mp_payment_id' => $paymentId,
-                                    'details' => $paymentDetails
-                                ]),
-                                'ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'
-                            ]
-                        );
-                    } catch (\Throwable $e) {}
+            if (!empty($osIds)) {
+                Database::beginTransaction();
+                try {
+                    foreach ($osIds as $osId) {
+                        $os = Database::fetchOne("SELECT * FROM service_orders WHERE id = :id LIMIT 1", ['id' => $osId]);
+                        if ($os) {
+                            Database::execute(
+                                "UPDATE service_orders 
+                                 SET payment_status = 'paid', 
+                                     payment_method = 'mercadopago',
+                                     status = CASE WHEN status = 'budget' THEN 'approved' ELSE status END
+                                 WHERE id = :id",
+                                ['id' => $osId]
+                            );
+
+                            try {
+                                Database::execute(
+                                    "INSERT INTO audit_logs (tenant_id, action, details_json, ip_address) 
+                                     VALUES (:tenant_id, 'os_payment_approved_mercadopago', :details, :ip)",
+                                    [
+                                        'tenant_id' => (int)$os['tenant_id'],
+                                        'details' => json_encode([
+                                            'os_id' => $osId,
+                                            'os_number' => $os['os_number'],
+                                            'total_value' => (float)$os['total_value'],
+                                            'mp_payment_id' => $paymentId,
+                                            'external_reference' => $externalReference,
+                                            'details' => $paymentDetails
+                                        ]),
+                                        'ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'
+                                    ]
+                                );
+                            } catch (\Throwable $e) {}
+
+                            // Valida e Concede Bônus de Indicação Anti-Fraude (1ª Transação Real da Oficina)
+                            \Zyrtex\Services\ReferralService::qualifyReferral((int)$os['tenant_id'], 'first_os_paid', 'os:' . $osId);
+                        }
+                    }
+                    Database::commit();
+                } catch (\Throwable $e) {
+                    Database::rollBack();
+                    error_log("Erro ao dar baixa em lote de OS no webhook: " . $e->getMessage());
                 }
             }
             return;
@@ -238,16 +253,13 @@ class WebhookController {
                     ['niche' => $newNiche, 'id' => $tenantId]
                 );
             }
-        } elseif ($sub['plan_type'] === 'annual_domain') {
-            $customDomain = trim((string)$sub['target_value']);
+        } elseif ($sub['plan_type'] === 'annual_domain' || $sub['plan_type'] === 'annual_premium') {
             Database::execute(
                 "UPDATE tenants 
-                 SET custom_domain = :domain, 
-                     is_premium = 1, 
+                 SET is_premium = 1, 
                      expires_at = DATE_ADD(NOW(), INTERVAL 1 YEAR) 
                  WHERE id = :id",
                 [
-                    'domain' => !empty($customDomain) ? $customDomain : null,
                     'id' => $tenantId
                 ]
             );
@@ -263,6 +275,9 @@ class WebhookController {
                 'id' => (int)$sub['id']
             ]
         );
+
+        // Valida e Concede Bônus de Indicação Anti-Fraude (Oficina pagou plano/serviço no SaaS)
+        \Zyrtex\Services\ReferralService::qualifyReferral($tenantId, 'subscription_approved', 'sub:' . $sub['id']);
 
         // Registra log de auditoria
         try {

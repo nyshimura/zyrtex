@@ -438,6 +438,11 @@ class ServiceOrderController {
 
             Database::execute($sql, $params);
 
+            // Valida e Concede Bônus de Indicação Anti-Fraude se o pagamento da OS foi concluído
+            if ($paymentStatus === 'paid') {
+                \Zyrtex\Services\ReferralService::qualifyReferral($tenantId, 'first_os_paid', 'os:' . $id);
+            }
+
             // RN05: Se a OS foi para "Aprovado" ou "Em Andamento" vindo de orçamento, baixa o estoque das peças vinculadas
             if ($oldStatus === 'budget' && in_array($newStatus, ['approved', 'in_progress'], true)) {
                 $parts = Database::fetchAll(
@@ -985,11 +990,26 @@ class ServiceOrderController {
             return;
         }
 
-        $diagnosis = trim((string)($os['technical_diagnosis'] ?? ''));
+        $postedDiag = trim((string)$request->post('technical_diagnosis', ''));
+        $diagnosis = !empty($postedDiag) ? $postedDiag : trim((string)($os['technical_diagnosis'] ?? ''));
+
         if (empty($diagnosis)) {
+            if ($request->isAjax()) {
+                Response::json(['success' => false, 'error' => 'Preencha o Diagnóstico Técnico da Bancada para que a IA possa traduzi-lo.']);
+                return;
+            }
             Session::setFlash('warning', 'Preencha primeiro o Diagnóstico Técnico da Bancada para que a IA possa traduzi-lo para o cliente.');
             Response::redirect('/admin/os/ver?id=' . $osId);
             return;
+        }
+
+        // Se o técnico digitou um diagnóstico novo no campo, salva no banco imediatamente
+        if (!empty($postedDiag) && $postedDiag !== ($os['technical_diagnosis'] ?? '')) {
+            Database::execute(
+                "UPDATE service_orders SET technical_diagnosis = :diag WHERE id = :id AND tenant_id = :tenant_id",
+                ['diag' => $postedDiag, 'id' => $osId, 'tenant_id' => $tenantId]
+            );
+            $os['technical_diagnosis'] = $postedDiag;
         }
 
         $result = \Zyrtex\Services\AIService::simplifyDiagnosis($diagnosis, $os['equipment_info'], $tenant);
@@ -1010,8 +1030,22 @@ class ServiceOrderController {
                 'is_fallback' => $result['is_fallback'] ?? false
             ]);
 
+            if ($request->isAjax()) {
+                Response::json([
+                    'success' => true,
+                    'text' => $result['text'],
+                    'provider' => $result['provider'] ?? 'huggingface',
+                    'is_fallback' => $result['is_fallback'] ?? false
+                ]);
+                return;
+            }
+
             Session::setFlash('success', '✨ Laudo traduzido com sucesso pela IA! O cliente já pode visualizá-lo em linguagem clara no portal.');
         } else {
+            if ($request->isAjax()) {
+                Response::json(['success' => false, 'error' => $result['error'] ?? 'Erro desconhecido']);
+                return;
+            }
             Session::setFlash('error', 'Não foi possível gerar a explicação simplificada: ' . ($result['error'] ?? 'Erro desconhecido'));
         }
 
@@ -1046,19 +1080,23 @@ class ServiceOrderController {
         $result = \Zyrtex\Services\AIService::generatePredictiveRemarketing($os, $client ?: [], $tenant);
 
         $cleanPhone = preg_replace('/\D/', '', $client['phone'] ?? '');
+        $fullPhone = $cleanPhone;
+        if (!empty($fullPhone) && !str_starts_with($fullPhone, '55')) {
+            $fullPhone = '55' . $fullPhone;
+        }
 
         if ($request->isAjax() || $request->query('json') === '1') {
             Response::json([
                 'success' => $result['success'],
                 'text' => $result['text'],
-                'phone' => $cleanPhone,
-                'whatsapp_url' => 'https://wa.me/55' . $cleanPhone . '?text=' . urlencode($result['text'])
+                'phone' => $fullPhone,
+                'whatsapp_url' => !empty($fullPhone) ? ('https://wa.me/' . $fullPhone . '?text=' . urlencode($result['text'])) : null
             ]);
             return;
         }
 
-        if (!empty($cleanPhone) && !empty($result['text'])) {
-            $waUrl = 'https://wa.me/55' . $cleanPhone . '?text=' . urlencode($result['text']);
+        if (!empty($fullPhone) && !empty($result['text'])) {
+            $waUrl = 'https://wa.me/' . $fullPhone . '?text=' . urlencode($result['text']);
             Response::redirect($waUrl);
             return;
         }
