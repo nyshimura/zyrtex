@@ -1,7 +1,7 @@
 # ⚡ Zyrtex SaaS — Gestão Inteligente para Assistências Técnicas & Oficinas
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/nyshimura/zyrtex/main/public/assets/img/logo.png" alt="Zyrtex Logo" width="120" onerror="this.style.display='none'">
+  <img src="https://raw.githubusercontent.com/nyshimura/zyrtex/main/public/assets/img/pwa-icon-512.png" alt="Zyrtex Logo" width="120" onerror="this.style.display='none'">
 </p>
 
 <p align="center">
