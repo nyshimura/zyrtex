@@ -1193,6 +1193,45 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                            class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
 
+                <!-- 4. Mensagem Personalizada do Botão do WhatsApp (Atendimento 1-Clique) -->
+                <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <label for="vitrine_whatsapp_message" class="block text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <span>💬</span>
+                                <span>Mensagem Padrão do Botão do WhatsApp na Vitrine:</span>
+                            </label>
+                            <p class="text-[11px] text-slate-400 mt-0.5">
+                                Este texto será aberto automaticamente no aplicativo do WhatsApp do cliente ao clicar no botão de contato da sua vitrine.
+                            </p>
+                        </div>
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 self-start sm:self-auto flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Atendimento 1-Clique
+                        </span>
+                    </div>
+
+                    <div>
+                        <textarea id="vitrine_whatsapp_message" name="whatsapp_message" rows="3"
+                                  placeholder="Ex: Olá! Vi a vitrine da {oficina} e gostaria de tirar uma dúvida sobre reparos e orçamentos."
+                                  class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none leading-relaxed font-sans"><?= htmlspecialchars($tenant['whatsapp_message'] ?? '', ENT_QUOTES, 'UTF-8') ?></textarea>
+                        
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-500 mt-2">
+                            <span>💡 Use a tag <code class="text-indigo-400 font-mono font-bold bg-slate-900 px-1 py-0.5 rounded border border-slate-800">{oficina}</code> para inserir o nome da sua loja automaticamente. Deixe em branco para a saudação padrão.</span>
+                            <?php if (!empty($tenant['whatsapp_number'])): ?>
+                                <span class="text-emerald-400 font-semibold text-[11px] flex items-center gap-1 shrink-0">
+                                    <span>📱 Vinculado ao WhatsApp:</span>
+                                    <strong class="font-mono"><?= htmlspecialchars($tenant['whatsapp_number'], ENT_QUOTES, 'UTF-8') ?></strong>
+                                </span>
+                            <?php else: ?>
+                                <span class="text-amber-400 font-semibold text-[11px] shrink-0">
+                                    ⚠️ Nenhum WhatsApp cadastrado na aba "Empresa & Local"
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 3. Gestão de Promoções em Destaque na Vitrine com Foto (Fase 5) -->
                 <div>
                     <div class="flex items-center justify-between mb-2">

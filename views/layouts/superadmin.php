@@ -103,14 +103,9 @@
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 block mb-2">Plataforma & SaaS</span>
                 <nav class="space-y-1">
                     <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/parametros') ?>" 
-                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= (str_contains($currentUri, '/' . $saSlug . '/parametros') && !str_contains($currentUri, '#vitrine')) ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= str_contains($currentUri, '/' . $saSlug . '/parametros') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
                         <span class="text-base">⚙️</span>
                         <span>Preços & Parâmetros</span>
-                    </a>
-                    <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/parametros#vitrine') ?>" 
-                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= str_contains($currentUri, 'vitrine') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
-                        <span class="text-base">🎨</span>
-                        <span>Vitrine & Rodapé SaaS</span>
                     </a>
                     <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/broadcast') ?>" 
                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= str_contains($currentUri, '/' . $saSlug . '/broadcast') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">

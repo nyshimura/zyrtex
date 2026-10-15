@@ -189,7 +189,12 @@ $activePalette = $colorPalettes[$themeColor] ?? $colorPalettes['indigo'];
     <!-- Botão Flutuante de WhatsApp com Radar Animado -->
     <?php if (!empty($tenant['whatsapp_number'])): 
         $whatsClean = preg_replace('/\D/', '', $tenant['whatsapp_number']);
-        $whatsUrl = "https://wa.me/55{$whatsClean}?text=" . urlencode("Olá! Vi a vitrine da assistência e gostaria de tirar uma dúvida sobre reparos e orçamentos.");
+        $shopName = $tenant['business_name'] ?? 'assistência técnica';
+        $rawWhatsMsg = !empty($tenant['whatsapp_message']) 
+            ? $tenant['whatsapp_message'] 
+            : "Olá! Vi a vitrine da {oficina} e gostaria de tirar uma dúvida sobre reparos e orçamentos.";
+        $finalWhatsMsg = str_replace(['{oficina}', '{loja}'], $shopName, $rawWhatsMsg);
+        $whatsUrl = "https://wa.me/55{$whatsClean}?text=" . urlencode($finalWhatsMsg);
     ?>
         <div class="fixed bottom-6 right-6 z-40">
             <a href="<?= $whatsUrl ?>" target="_blank" rel="noopener noreferrer"

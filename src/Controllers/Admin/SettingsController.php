@@ -143,6 +143,7 @@ class SettingsController {
 
         $themeColor = (string)$request->post('theme_color', 'indigo');
         $slogan = trim((string)$request->post('slogan', ''));
+        $whatsappMessage = trim((string)$request->post('whatsapp_message', ''));
         $bannerUrl = trim((string)$request->post('banner_url', ''));
         $removeBanner = !empty($request->post('remove_banner'));
 
@@ -243,12 +244,19 @@ class SettingsController {
         try {
             Database::execute(
                 "UPDATE tenants 
-                 SET theme_color = :theme_color, theme_mode = :theme_mode, slogan = :slogan, banner_path = :banner_path, promotions_json = :promotions, public_metrics_json = :public_metrics 
+                 SET theme_color = :theme_color, 
+                     theme_mode = :theme_mode, 
+                     slogan = :slogan, 
+                     whatsapp_message = :whatsapp_message, 
+                     banner_path = :banner_path, 
+                     promotions_json = :promotions, 
+                     public_metrics_json = :public_metrics 
                  WHERE id = :id",
                 [
                     'theme_color' => $themeColor,
                     'theme_mode' => $themeMode,
                     'slogan' => $slogan ?: null,
+                    'whatsapp_message' => $whatsappMessage ?: null,
                     'banner_path' => $bannerPath ?: null,
                     'promotions' => $promotionsJson,
                     'public_metrics' => $publicMetricsJson,

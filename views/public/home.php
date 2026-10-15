@@ -281,7 +281,11 @@ if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
         </div>
         <?php if (!empty($tenant['whatsapp_number'])): 
             $whatsClean = preg_replace('/\D/', '', $tenant['whatsapp_number']);
-            $whatsCustomQuote = "https://wa.me/55{$whatsClean}?text=" . urlencode("Olá! Gostaria de solicitar um orçamento personalizado para o meu aparelho.");
+            $shopName = $tenant['business_name'] ?? 'assistência técnica';
+            $quoteMsg = !empty($tenant['whatsapp_message'])
+                ? str_replace(['{oficina}', '{loja}'], $shopName, $tenant['whatsapp_message'])
+                : "Olá! Gostaria de solicitar um orçamento personalizado para o meu aparelho.";
+            $whatsCustomQuote = "https://wa.me/55{$whatsClean}?text=" . urlencode($quoteMsg);
         ?>
             <a href="<?= $whatsCustomQuote ?>" target="_blank" rel="noopener noreferrer" 
                class="inline-flex items-center gap-2 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
