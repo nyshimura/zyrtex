@@ -240,7 +240,7 @@ $pixMessage = $saasSettings['saas_pix_message'] ?? 'O Zyrtex é mantido com muit
             </p>
             <ul class="space-y-2 list-disc list-inside text-slate-400 pl-2">
                 <li><strong class="text-white">Anúncios Discretos (Google AdSense):</strong> Inseridos de forma não invasiva no sistema gratuito.</li>
-                <li><strong class="text-white">Recursos Premium Opcionais:</strong> Quem quiser usar seu próprio domínio (ex: <code class="text-indigo-400">www.oficinadotiao.com.br</code>) paga uma anuidade acessível e remove todos os anúncios.</li>
+                <li><strong class="text-white">Recursos Premium Opcionais:</strong> Quem quiser navegar 100% livre de qualquer anúncio no sistema paga uma anuidade acessível de apenas R$ 99/ano.</li>
                 <li><strong class="text-white">Doações da Comunidade:</strong> Usuários que faturam alto com o sistema e desejam apoiar o projeto nos pagam um café via Pix voluntário.</li>
             </ul>
             <p class="text-xs text-emerald-400 pt-2 font-semibold">
@@ -251,7 +251,7 @@ $pixMessage = $saasSettings['saas_pix_message'] ?? 'O Zyrtex é mantido com muit
     </div>
 </section>
 
-<!-- Seção: Tabela Comparativa de Planos (Venda do Domínio Customizado) -->
+<!-- Seção: Tabela Comparativa de Planos (Plano Anual Sem Anúncios) -->
 <section id="planos" class="py-24 bg-slate-950">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -297,39 +297,40 @@ $pixMessage = $saasSettings['saas_pix_message'] ?? 'O Zyrtex é mantido com muit
                 </div>
             </div>
 
-            <!-- Plano 2: Domínio Customizado (Premium) -->
+            <!-- Plano 2: Plano Anual Sem Anúncios (Premium) -->
             <div class="bg-gradient-to-b from-indigo-950/50 via-slate-900 to-slate-900 rounded-3xl p-8 border-2 border-indigo-500/50 flex flex-col justify-between relative shadow-2xl shadow-indigo-500/10">
                 <div class="absolute -top-3.5 right-8 px-3 py-1 rounded-full text-xs font-extrabold bg-gradient-to-r from-indigo-500 to-emerald-400 text-white shadow-md">
-                    RECOMENDADO PARA AUTORIDADE
+                    RECOMENDADO PARA OFICINAS
                 </div>
 
                 <div>
                     <span class="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 inline-block mb-4">
-                        Profissional Premium
+                        Experiência Limpa (Ad-Free)
                     </span>
-                    <h3 class="text-2xl font-bold text-white">Domínio Próprio</h3>
-                    <p class="text-xs text-slate-400 mt-1">Autoridade máxima para a sua marca sem anúncios.</p>
+                    <h3 class="text-2xl font-bold text-white">Plano Anual Sem Anúncios</h3>
+                    <p class="text-xs text-slate-400 mt-1">Sua assistência técnica sem distrações ou propagandas.</p>
                     
                     <div class="my-6">
                         <span class="text-4xl font-black text-white">R$ 197</span>
-                        <span class="text-xs text-slate-400">/ ano único (equivale a R$ 16,40/mês)</span>
+                        <span class="text-xs text-slate-400">/ ano único (menos de R$ 0,55/dia)</span>
                     </div>
 
                     <ul class="space-y-3 text-xs text-slate-200">
-                        <li class="flex items-center gap-2 text-emerald-400 font-semibold">✓ Seu próprio endereço: <code class="text-white">www.suaoficina.com.br</code></li>
-                        <li class="flex items-center gap-2 text-emerald-400 font-semibold">✓ ZERO Anúncios no seu painel e na sua vitrine</li>
-                        <li class="flex items-center gap-2">✓ Todas as funções do plano Free ilimitadas</li>
-                        <li class="flex items-center gap-2">✓ Mais credibilidade perante seus clientes</li>
-                        <li class="flex items-center gap-2">✓ Certificado de Segurança SSL Grátis</li>
+                        <li class="flex items-center gap-2 text-emerald-400 font-semibold">✓ ZERO Anúncios na vitrine, no rastreio de OS e no portal</li>
+                        <li class="flex items-center gap-2 text-emerald-400 font-semibold">✓ Subdomínio exclusivo: <code class="text-white">suaoficina.zyrtex.com.br</code></li>
+                        <li class="flex items-center gap-2">✓ URL amigável: <code class="text-slate-300">zyrtex.com.br/suaoficina</code></li>
+                        <li class="flex items-center gap-2">✓ Alterações de nome/slug ilimitadas e sem taxas</li>
+                        <li class="flex items-center gap-2">✓ Selo de Oficina Verificada & maior credibilidade</li>
+                        <li class="flex items-center gap-2">✓ Ícone PWA: instalável na tela inicial do celular</li>
                         <li class="flex items-center gap-2">✓ Suporte prioritário via WhatsApp</li>
                         <li class="flex items-center gap-2 text-slate-400">✓ Garantia de estorno de 7 dias (CDC)</li>
                     </ul>
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-slate-800">
-                    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/cadastro?plan=custom_domain" 
+                    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/cadastro?plan=anual" 
                        class="w-full py-3.5 rounded-xl font-bold text-sm text-center text-white bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 shadow-lg shadow-indigo-500/25 transition block">
-                        Assinar com Domínio Próprio
+                        Assinar Plano Anual Sem Anúncios
                     </a>
                 </div>
             </div>

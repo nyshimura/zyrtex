@@ -1,0 +1,228 @@
+=================================================================
+DATA: 15/10/2026 14:31:40
+PARA: Lojista Teste <lojista_teste@exemplo.com.br>
+ASSUNTO: 🛡️ K9P2X - Seu Código de Acesso Zyrtex Guard
+CORPO (HTML):
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificação Zyrtex</title>
+</head>
+<body style="margin: 0; padding: 24px 12px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+        
+                    <!-- HEADER BLOCK -->
+                    <tr>
+                        <td align="center" style="background-color: #0f172a; padding: 32px 24px; border-radius: 16px 16px 0 0;">
+                            <h1 style="margin: 0; color: #38bdf8; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                                🛡️ ZYRTEX GUARD
+                            </h1>
+                            <p style="margin: 6px 0 0 0; color: #38bdf8; opacity: 0.85; font-size: 13px; font-weight: 500;">Autenticação em Dois Fatores &amp;bull; Segurança Avançada</p>
+                        </td>
+                    </tr>
+
+                    <!-- TEXT BLOCK -->
+                    <tr>
+                        <td align="left" style="padding: 24px 28px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                            <h2 style="margin: 0 0 12px 0; color: #0f172a; font-size: 18px; font-weight: 700;">Olá, Marcos Mecânico!</h2>
+                            <div style="color: #334155; font-size: 14px; line-height: 1.6;">
+                                Detectamos uma tentativa de login na sua conta da oficina <strong>Auto Center Paulista</strong>. Para prosseguir com segurança máxima, informe o código do Zyrtex Guard abaixo na tela de login:
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- TOKEN BOX (STEAM GUARD STYLE) -->
+                    <tr>
+                        <td align="center" style="padding: 12px 28px 24px 28px;">
+                            <div style="background-color: #1e293b; border: 2px solid #0284c7; border-radius: 14px; padding: 22px 18px; max-width: 440px; margin: 0 auto; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
+                                <span style="display: block; font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                                    SEU CÓDIGO DE ACESSO ZYRTEX GUARD:
+                                </span>
+                                <div style="font-size: 32px; font-weight: 900; letter-spacing: 6px; color: #38bdf8; font-family: 'Courier New', Courier, monospace; background: rgba(255,255,255,0.06); padding: 10px 16px; border-radius: 8px; display: inline-block; margin: 4px 0;">
+                                    K9P2X
+                                </div>
+                                <p style="margin: 8px 0 0 0; font-size: 11px; color: #64748b; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                                    Este código é válido por 10 minutos. Nunca o compartilhe com ninguém.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- DETAILS BOX BLOCK -->
+                    <tr>
+                        <td style="padding: 12px 28px;">
+                            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 20px;">
+                                <h4 style="margin: 0 0 8px 0; color: #1e293b; font-size: 13px; font-weight: 700;">Detalhes da Solicitação de Acesso:</h4>
+                                <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 13px; line-height: 1.5;">
+                                    <li style="margin-bottom: 6px;">📍 Endereço IP: 127.0.0.1</li><li style="margin-bottom: 6px;">⏰ Data e Horário: 15/10/2026 às 14:31:40</li><li style="margin-bottom: 6px;">🏢 Oficina: Auto Center Paulista</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- DIVIDER BLOCK -->
+                    <tr>
+                        <td style="padding: 12px 28px;">
+                            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 0;">
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER BLOCK -->
+                    <tr>
+                        <td align="center" style="background-color: #f1f5f9; padding: 24px 28px; border-radius: 0 0 16px 16px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                            <p style="margin: 0; color: #64748b; font-size: 11px; line-height: 1.6;">
+                                Se você não reconhece esta tentativa de acesso, altere sua senha imediatamente na central de configurações da oficina.<br>&copy; 2026 Zyrtex SaaS Security Shield.
+                            </p>
+                        </td>
+                    </tr>
+    </table>
+</body>
+</html>
+
+=================================================================
+DATA: 15/10/2026 15:40:08
+PARA: Carlos Silva (Dono da Oficina) <admin@oficina.com.br>
+ASSUNTO: 🎉 Parabéns! Sua indicação foi confirmada: +30 dias Pro grátis!
+CORPO (HTML):
+
+            <div style='background-color:#070b14; color:#f1f5f9; font-family:Plus Jakarta Sans, sans-serif; padding:32px 16px;'>
+                <div style='max-width:540px; margin:0 auto; background-color:#0f172a; border:1px solid #1e293b; border-radius:20px; padding:32px; text-align:center;'>
+                    <div style='font-size:40px; margin-bottom:12px;'>🎁</div>
+                    <h1 style='color:#ffffff; font-size:22px; font-weight:800; margin:0 0 10px;'>
+                        Bônus de Indicação Liberado!
+                    </h1>
+                    <p style='color:#94a3b8; font-size:14px; line-height:1.6; margin:0 0 24px;'>
+                        A oficina parceira <strong>Auto Mecânica Precision</strong> foi validada com sucesso através de uma transação real na plataforma Zyrtex!
+                    </p>
+                    <div style='background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:18px; margin-bottom:24px;'>
+                        <div style='color:#34d399; font-size:24px; font-weight:900;'>+30 Dias Grátis</div>
+                        <div style='color:#94a3b8; font-size:12px;'>Adicionados diretamente à sua assinatura do Zyrtex Pro</div>
+                    </div>
+                    <p style='color:#64748b; font-size:12px;'>Continue indicando outros colegas de bancada e acumule meses gratuitos sem limites.</p>
+                </div>
+            </div>
+            
+
+=================================================================
+DATA: 15/10/2026 15:41:10
+PARA: Carlos Silva (Dono da Oficina) <admin@oficina.com.br>
+ASSUNTO: 🎉 Parabéns! Sua indicação foi confirmada: +30 dias Pro grátis!
+CORPO (HTML):
+
+            <div style='background-color:#070b14; color:#f1f5f9; font-family:Plus Jakarta Sans, sans-serif; padding:32px 16px;'>
+                <div style='max-width:540px; margin:0 auto; background-color:#0f172a; border:1px solid #1e293b; border-radius:20px; padding:32px; text-align:center;'>
+                    <div style='font-size:40px; margin-bottom:12px;'>🎁</div>
+                    <h1 style='color:#ffffff; font-size:22px; font-weight:800; margin:0 0 10px;'>
+                        Bônus de Indicação Liberado!
+                    </h1>
+                    <p style='color:#94a3b8; font-size:14px; line-height:1.6; margin:0 0 24px;'>
+                        A oficina parceira <strong>Auto Mecânica Precision</strong> foi validada com sucesso através de uma transação real na plataforma Zyrtex!
+                    </p>
+                    <div style='background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:18px; margin-bottom:24px;'>
+                        <div style='color:#34d399; font-size:24px; font-weight:900;'>+30 Dias Grátis</div>
+                        <div style='color:#94a3b8; font-size:12px;'>Adicionados diretamente à sua assinatura do Zyrtex Pro</div>
+                    </div>
+                    <p style='color:#64748b; font-size:12px;'>Continue indicando outros colegas de bancada e acumule meses gratuitos sem limites.</p>
+                </div>
+            </div>
+            
+
+=================================================================
+DATA: 15/10/2026 15:43:57
+PARA: Carlos Silva (Dono da Oficina) <admin@oficina.com.br>
+ASSUNTO: 🎉 Parabéns! Sua indicação foi confirmada: +30 dias Pro grátis!
+CORPO (HTML):
+
+            <div style='background-color:#070b14; color:#f1f5f9; font-family:Plus Jakarta Sans, sans-serif; padding:32px 16px;'>
+                <div style='max-width:540px; margin:0 auto; background-color:#0f172a; border:1px solid #1e293b; border-radius:20px; padding:32px; text-align:center;'>
+                    <div style='font-size:40px; margin-bottom:12px;'>🎁</div>
+                    <h1 style='color:#ffffff; font-size:22px; font-weight:800; margin:0 0 10px;'>
+                        Bônus de Indicação Liberado!
+                    </h1>
+                    <p style='color:#94a3b8; font-size:14px; line-height:1.6; margin:0 0 24px;'>
+                        A oficina parceira <strong>Auto Mecânica Precision</strong> foi validada com sucesso através de uma transação real na plataforma Zyrtex!
+                    </p>
+                    <div style='background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:18px; margin-bottom:24px;'>
+                        <div style='color:#34d399; font-size:24px; font-weight:900;'>+30 Dias Grátis</div>
+                        <div style='color:#94a3b8; font-size:12px;'>Adicionados diretamente à sua assinatura do Zyrtex Pro</div>
+                    </div>
+                    <p style='color:#64748b; font-size:12px;'>Continue indicando outros colegas de bancada e acumule meses gratuitos sem limites.</p>
+                </div>
+            </div>
+            
+
+=================================================================
+DATA: 15/10/2026 15:44:22
+PARA: Carlos Silva (Dono da Oficina) <admin@oficina.com.br>
+ASSUNTO: 🎉 Parabéns! Sua indicação foi confirmada: +30 dias Pro grátis!
+CORPO (HTML):
+
+            <div style='background-color:#070b14; color:#f1f5f9; font-family:Plus Jakarta Sans, sans-serif; padding:32px 16px;'>
+                <div style='max-width:540px; margin:0 auto; background-color:#0f172a; border:1px solid #1e293b; border-radius:20px; padding:32px; text-align:center;'>
+                    <div style='font-size:40px; margin-bottom:12px;'>🎁</div>
+                    <h1 style='color:#ffffff; font-size:22px; font-weight:800; margin:0 0 10px;'>
+                        Bônus de Indicação Liberado!
+                    </h1>
+                    <p style='color:#94a3b8; font-size:14px; line-height:1.6; margin:0 0 24px;'>
+                        A oficina parceira <strong>Auto Mecânica Precision</strong> foi validada com sucesso através de uma transação real na plataforma Zyrtex!
+                    </p>
+                    <div style='background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:18px; margin-bottom:24px;'>
+                        <div style='color:#34d399; font-size:24px; font-weight:900;'>+30 Dias Grátis</div>
+                        <div style='color:#94a3b8; font-size:12px;'>Adicionados diretamente à sua assinatura do Zyrtex Pro</div>
+                    </div>
+                    <p style='color:#64748b; font-size:12px;'>Continue indicando outros colegas de bancada e acumule meses gratuitos sem limites.</p>
+                </div>
+            </div>
+            
+
+=================================================================
+DATA: 15/10/2026 15:44:43
+PARA: Carlos Silva (Dono da Oficina) <admin@oficina.com.br>
+ASSUNTO: 🎉 Parabéns! Sua indicação foi confirmada: +30 dias Pro grátis!
+CORPO (HTML):
+
+            <div style='background-color:#070b14; color:#f1f5f9; font-family:Plus Jakarta Sans, sans-serif; padding:32px 16px;'>
+                <div style='max-width:540px; margin:0 auto; background-color:#0f172a; border:1px solid #1e293b; border-radius:20px; padding:32px; text-align:center;'>
+                    <div style='font-size:40px; margin-bottom:12px;'>🎁</div>
+                    <h1 style='color:#ffffff; font-size:22px; font-weight:800; margin:0 0 10px;'>
+                        Bônus de Indicação Liberado!
+                    </h1>
+                    <p style='color:#94a3b8; font-size:14px; line-height:1.6; margin:0 0 24px;'>
+                        A oficina parceira <strong>Auto Mecânica Precision</strong> foi validada com sucesso através de uma transação real na plataforma Zyrtex!
+                    </p>
+                    <div style='background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:18px; margin-bottom:24px;'>
+                        <div style='color:#34d399; font-size:24px; font-weight:900;'>+30 Dias Grátis</div>
+                        <div style='color:#94a3b8; font-size:12px;'>Adicionados diretamente à sua assinatura do Zyrtex Pro</div>
+                    </div>
+                    <p style='color:#64748b; font-size:12px;'>Continue indicando outros colegas de bancada e acumule meses gratuitos sem limites.</p>
+                </div>
+            </div>
+            
+
+=================================================================
+DATA: 15/10/2026 15:45:34
+PARA: Carlos Silva (Dono da Oficina) <admin@oficina.com.br>
+ASSUNTO: 🎉 Parabéns! Sua indicação foi confirmada: +30 dias Pro grátis!
+CORPO (HTML):
+
+            <div style='background-color:#070b14; color:#f1f5f9; font-family:Plus Jakarta Sans, sans-serif; padding:32px 16px;'>
+                <div style='max-width:540px; margin:0 auto; background-color:#0f172a; border:1px solid #1e293b; border-radius:20px; padding:32px; text-align:center;'>
+                    <div style='font-size:40px; margin-bottom:12px;'>🎁</div>
+                    <h1 style='color:#ffffff; font-size:22px; font-weight:800; margin:0 0 10px;'>
+                        Bônus de Indicação Liberado!
+                    </h1>
+                    <p style='color:#94a3b8; font-size:14px; line-height:1.6; margin:0 0 24px;'>
+                        A oficina parceira <strong>Auto Mecânica Precision</strong> foi validada com sucesso através de uma transação real na plataforma Zyrtex!
+                    </p>
+                    <div style='background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:14px; padding:18px; margin-bottom:24px;'>
+                        <div style='color:#34d399; font-size:24px; font-weight:900;'>+30 Dias Grátis</div>
+                        <div style='color:#94a3b8; font-size:12px;'>Adicionados diretamente à sua assinatura do Zyrtex Pro</div>
+                    </div>
+                    <p style='color:#64748b; font-size:12px;'>Continue indicando outros colegas de bancada e acumule meses gratuitos sem limites.</p>
+                </div>
+            </div>
+            
+

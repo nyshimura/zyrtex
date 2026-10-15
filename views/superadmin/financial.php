@@ -27,15 +27,23 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
         </div>
 
         <div class="flex items-center gap-2.5 flex-wrap">
+            <form action="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/remarketing/processar') ?>" method="POST" class="inline">
+                <?= \Zyrtex\Core\Csrf::field() ?>
+                <button type="submit" title="Varre pedidos pendentes e move para a fila de recuperação com desconto progressivo" 
+                        class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-orange-500/20">
+                    <span>⚡</span>
+                    <span>Processar Remarketing</span>
+                </button>
+            </form>
             <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro/exportar') ?>" 
                class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-bold transition flex items-center gap-2 shadow-sm">
                 <span>📥</span>
                 <span>Exportar CSV</span>
             </a>
-            <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/parametros') ?>" 
+            <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/parametros#tab-growth') ?>" 
                class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
                 <span>⚙️</span>
-                <span>Tabela de Preços</span>
+                <span>Regras de Desconto & Indicações</span>
             </a>
         </div>
     </div>
@@ -117,6 +125,92 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
             <div class="absolute -right-2 -bottom-2 w-16 h-16 bg-cyan-500/5 rounded-full blur-xl group-hover:scale-150 transition-all pointer-events-none"></div>
         </div>
 
+    </div>
+
+    <!-- Seção de Growth: Remarketing de Carrinho & Programa Indique e Ganhe -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Card Remarketing de Carrinho -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/20 border border-amber-500/30 shadow-sm relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-sm font-bold">⚡</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Recuperação de Vendas & Remarketing</h3>
+                        <p class="text-[11px] text-slate-400">Checkout mágico 1-clique com desconto progressivo por tempo de cadastro</p>
+                    </div>
+                </div>
+                <a href="<?= $currentUrl ?>?status=remarketing" class="text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center gap-1">
+                    <span>Ver Fila</span>
+                    <span>&rarr;</span>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 pt-2">
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Fila Atual</span>
+                    <div class="text-2xl font-black text-amber-400 font-mono mt-0.5">
+                        <?= (int)($remarketingMetrics['total_in_queue'] ?? 0) ?>
+                    </div>
+                    <span class="text-[10px] text-slate-500">pedidos aguardando</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Recuperados</span>
+                    <div class="text-2xl font-black text-emerald-400 font-mono mt-0.5">
+                        R$ <?= number_format((float)($remarketingMetrics['total_recovered_revenue'] ?? 0), 2, ',', '.') ?>
+                    </div>
+                    <span class="text-[10px] text-emerald-400/80 font-bold"><?= (int)($remarketingMetrics['total_recovered_count'] ?? 0) ?> assinaturas salvas</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Taxa Conversão</span>
+                    <div class="text-2xl font-black text-white font-mono mt-0.5">
+                        <?= number_format((float)($remarketingMetrics['conversion_rate'] ?? 0), 1, ',', '.') ?>%
+                    </div>
+                    <span class="text-[10px] text-slate-400">desc. médio: <?= (float)($remarketingMetrics['average_discount'] ?? 0) ?>%</span>
+                </div>
+            </div>
+            <div class="absolute -right-3 -bottom-3 w-20 h-20 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
+        </div>
+
+        <!-- Card Programa Indique e Ganhe (Anti-Fraude) -->
+        <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/20 border border-indigo-500/30 shadow-sm relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-sm font-bold">🎁</span>
+                    <div>
+                        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Programa Indique & Ganhe (Anti-Fraude)</h3>
+                        <p class="text-[11px] text-slate-400">Bonificação de Pro liberada estritamente mediante transação real (OS/Plano)</p>
+                    </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                    LGPD Blindada
+                </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 pt-2">
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Total Convites</span>
+                    <div class="text-2xl font-black text-white font-mono mt-0.5">
+                        <?= (int)($referralMetrics['total_referrals'] ?? 0) ?>
+                    </div>
+                    <span class="text-[10px] text-slate-500"><?= (int)($referralMetrics['total_pending'] ?? 0) ?> pendentes</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Qualificadas</span>
+                    <div class="text-2xl font-black text-emerald-400 font-mono mt-0.5">
+                        <?= (int)($referralMetrics['total_qualified'] ?? 0) ?>
+                    </div>
+                    <span class="text-[10px] text-emerald-400 font-bold">pagamento real aprovado</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Dias Pro Dados</span>
+                    <div class="text-2xl font-black text-cyan-400 font-mono mt-0.5">
+                        +<?= (int)($referralMetrics['total_days_given'] ?? 0) ?>
+                    </div>
+                    <span class="text-[10px] text-slate-400">dias de Pro entregues</span>
+                </div>
+            </div>
+            <div class="absolute -right-3 -bottom-3 w-20 h-20 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
+        </div>
     </div>
 
     <!-- Seção Visual: Gráfico de Evolução (6 Meses) & Breakdown de Planos -->
@@ -260,7 +354,9 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                         class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-300 font-semibold focus:ring-2 focus:ring-indigo-500">
                     <option value="" <?= empty($filterStatus) ? 'selected' : '' ?>>Todos os Status</option>
                     <option value="approved" <?= $filterStatus === 'approved' ? 'selected' : '' ?>>Apenas Aprovados</option>
+                    <option value="remarketing" <?= $filterStatus === 'remarketing' ? 'selected' : '' ?>>⚡ Fila de Remarketing (Desconto Ativo)</option>
                     <option value="pending" <?= $filterStatus === 'pending' ? 'selected' : '' ?>>Apenas Pendentes</option>
+                    <option value="expired" <?= $filterStatus === 'expired' ? 'selected' : '' ?>>Expiradas</option>
                     <option value="refunded" <?= $filterStatus === 'refunded' ? 'selected' : '' ?>>Apenas Estornados</option>
                     <option value="cancelled" <?= $filterStatus === 'cancelled' ? 'selected' : '' ?>>Cancelados</option>
                 </select>
@@ -269,7 +365,7 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                 <select name="plan" onchange="this.form.submit()" 
                         class="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-slate-300 font-semibold focus:ring-2 focus:ring-indigo-500">
                     <option value="" <?= empty($filterPlan) ? 'selected' : '' ?>>Todos os Serviços</option>
-                    <option value="annual_domain" <?= $filterPlan === 'annual_domain' ? 'selected' : '' ?>>Domínio Anual</option>
+                    <option value="annual_domain" <?= $filterPlan === 'annual_domain' ? 'selected' : '' ?>>Plano Anual Sem Anúncios</option>
                     <option value="slug_change" <?= $filterPlan === 'slug_change' ? 'selected' : '' ?>>Troca de Slug</option>
                     <option value="niche_change" <?= $filterPlan === 'niche_change' ? 'selected' : '' ?>>Troca de Nicho</option>
                 </select>
@@ -306,12 +402,13 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                         <th class="py-3 px-4">Status</th>
                         <th class="py-3 px-4">ID Mercado Pago</th>
                         <th class="py-3 px-4">Data Pagamento</th>
+                        <th class="py-3 px-4 text-right">Ações / Recuperação</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-800/60 font-medium">
                     <?php if (empty($transactions)): ?>
                         <tr>
-                            <td colspan="7" class="py-12 text-center text-slate-500">
+                            <td colspan="8" class="py-12 text-center text-slate-500">
                                 Nenhuma transação encontrada com os filtros selecionados.
                             </td>
                         </tr>
@@ -328,7 +425,7 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                                 <td class="py-3 px-4">
                                     <?php 
                                     $planName = match($tx['plan_type']) {
-                                        'annual_domain' => 'Domínio Próprio Anual',
+                                        'annual_domain' => 'Plano Anual Sem Anúncios',
                                         'slug_change' => 'Troca de Rota / Slug',
                                         'niche_change' => 'Readequação de Nicho',
                                         default => $tx['plan_type']
@@ -342,6 +439,11 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                                     <?php endif; ?>
                                 </td>
                                 <td class="py-3 px-4 font-mono font-bold text-white text-sm">
+                                    <?php if (!empty($tx['original_amount']) && (float)$tx['original_amount'] > (float)$tx['amount']): ?>
+                                        <div class="text-[10px] text-slate-500 line-through">
+                                            R$ <?= number_format((float)$tx['original_amount'], 2, ',', '.') ?>
+                                        </div>
+                                    <?php endif; ?>
                                     R$ <?= number_format((float)$tx['amount'], 2, ',', '.') ?>
                                 </td>
                                 <td class="py-3 px-4">
@@ -353,9 +455,23 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                             <span>✓</span> Aprovado
                                         </span>
+                                        <?php if (!empty($tx['recovery_token'])): ?>
+                                            <span class="block text-[9px] text-amber-400 font-bold mt-0.5">⚡ Recuperado (-<?= (int)$tx['discount_percent'] ?>%)</span>
+                                        <?php endif; ?>
+                                    <?php elseif ($tx['status'] === 'remarketing'): ?>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            <span>⚡</span> Remarketing (-<?= (int)$tx['discount_percent'] ?>%)
+                                        </span>
+                                        <?php if (!empty($tx['remarketing_count'])): ?>
+                                            <span class="block text-[9px] text-slate-500 mt-0.5"><?= $tx['remarketing_count'] ?> contato(s) enviado(s)</span>
+                                        <?php endif; ?>
                                     <?php elseif ($tx['status'] === 'pending'): ?>
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                             <span>⏳</span> Pendente
+                                        </span>
+                                    <?php elseif ($tx['status'] === 'expired'): ?>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                            <span>⌛</span> Expirada
                                         </span>
                                     <?php else: ?>
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
@@ -368,6 +484,44 @@ $currentUrl = \Zyrtex\Core\Response::url('/' . $saSlug . '/financeiro');
                                 </td>
                                 <td class="py-3 px-4 text-slate-400 text-[11px]">
                                     <?= !empty($tx['purchased_at']) ? date('d/m/Y H:i', strtotime($tx['purchased_at'])) : date('d/m/Y H:i', strtotime($tx['created_at'])) ?>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <?php if ($tx['status'] === 'remarketing' && !empty($tx['recovery_token'])): ?>
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            <!-- Botão Copiar Magic Link -->
+                                            <button type="button" 
+                                                    onclick="navigator.clipboard.writeText('<?= \Zyrtex\Core\Response::url('/recuperar/' . $tx['recovery_token']) ?>'); if(typeof window.zyrtexToast==='function') window.zyrtexToast('Link de recuperação copiado!', 'success');"
+                                                    title="Copiar Link Mágico de Recuperação com Desconto"
+                                                    class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition text-xs border border-slate-700">
+                                                🔗
+                                            </button>
+
+                                            <!-- Botão WhatsApp 1-Clique -->
+                                            <?php 
+                                            $waUrl = \Zyrtex\Services\RemarketingService::getWhatsAppRecoveryLink($tx);
+                                            if (!empty($waUrl)): 
+                                            ?>
+                                                <a href="<?= htmlspecialchars($waUrl, ENT_QUOTES, 'UTF-8') ?>" target="_blank"
+                                                   title="Abrir WhatsApp com proposta pré-formatada"
+                                                   class="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition text-xs">
+                                                    💬
+                                                </a>
+                                            <?php endif; ?>
+
+                                            <!-- Disparar E-mail de Proposta -->
+                                            <form action="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/remarketing/enviar') ?>" method="POST" class="inline">
+                                                <?= \Zyrtex\Core\Csrf::field() ?>
+                                                <input type="hidden" name="subscription_id" value="<?= $tx['id'] ?>">
+                                                <input type="hidden" name="channel" value="email">
+                                                <button type="submit" title="Disparar e-mail de recuperação de checkout" 
+                                                        class="p-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 transition text-xs">
+                                                    ✉️
+                                                </button>
+                                            </form>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-slate-600 font-mono text-xs">-</span>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

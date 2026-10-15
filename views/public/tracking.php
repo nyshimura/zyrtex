@@ -142,6 +142,9 @@ $cleanShopPhone = preg_replace('/\D/', '', $tenant['whatsapp_number'] ?? ($tenan
                 <?php endif; ?>
             </div>
 
+            <!-- Slot Estratégico de Publicidade no Rastreio de OS (Isolado de Botões de Ação) -->
+            <?php \Zyrtex\Core\View::partial('adsense_slot', ['tenant' => $tenant, 'slot_context' => 'tracking']); ?>
+
             <!-- SEÇÃO DE PEÇAS & APROVAÇÃO (RF - Central de Aprovação do Cliente) -->
             <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-700 shadow-sm space-y-6">
 

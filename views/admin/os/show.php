@@ -24,16 +24,16 @@ $statusMap = [
 ];
 $currentStatus = $statusMap[$os['status']] ?? ['label' => $os['status'], 'class' => 'bg-slate-800 text-slate-300 border-slate-700'];
 
-// Mensagens pré-formatadas para WhatsApp (RF17)
+// Mensagens pré-formatadas para WhatsApp (RF17) e Rastreio Público (QR Code)
 $clientDisplayName = $os['client_name'] ?? 'Cliente';
 $shopName = $tenant['business_name'] ?? 'Assistência Técnica';
-$portalUrl = \Zyrtex\Core\Tenant::publicUrl($tenant['slug'] ?? null, '/portal?os=' . urlencode($os['os_number']));
+$trackingUrl = \Zyrtex\Core\Tenant::publicUrl($tenant['slug'] ?? null, '/rastreio?os=' . urlencode($os['os_number']));
 
-$waMsgOrcamento = urlencode("Olá, {$clientDisplayName}! Seu orçamento para o reparo do {$os['equipment_info']} na {$shopName} está pronto! Valor total: R$ " . number_format((float)$os['total_value'], 2, ',', '.') . ".\n\nVocê pode revisar os itens e aprovar em 1 clique acessando seu Portal exclusivo:\n{$portalUrl}");
-$waMsgPronto = urlencode("Olá, {$clientDisplayName}! Temos ótimas notícias: o reparo do seu {$os['equipment_info']} (OS {$os['os_number']}) foi concluído com sucesso pela {$shopName}! 🎉\n\nValor final: R$ " . number_format((float)$os['total_value'], 2, ',', '.') . ".\nVocê já pode retirá-lo em nossa oficina.\nVeja o laudo e fotos no seu Portal:\n{$portalUrl}");
-$waMsgAdicional = urlencode("Olá, {$clientDisplayName}! Durante a análise em bancada na {$shopName}, nossos técnicos identificaram a necessidade de novos itens para a conclusão do seu {$os['equipment_info']} (OS {$os['os_number']}).\n\nPor favor, acesse seu Portal para revisar os novos valores e autorizar:\n{$portalUrl}");
-$pixKeyText = !empty($tenant['pix_key']) ? "Chave Pix ({$tenant['pix_key_type']}): {$tenant['pix_key']} em nome de " . ($tenant['pix_beneficiary'] ?? $shopName) : "Link do Portal: {$portalUrl}";
-$waMsgCobranca = urlencode("Olá, {$clientDisplayName}! Seguem os dados para pagamento do seu serviço na {$shopName} (OS {$os['os_number']}):\nValor total: R$ " . number_format((float)$os['total_value'], 2, ',', '.') . ".\n\n{$pixKeyText}\n\nVocê também pode pagar online acessando seu Portal:\n{$portalUrl}");
+$waMsgOrcamento = urlencode("Olá, {$clientDisplayName}! Seu orçamento para o reparo do {$os['equipment_info']} na {$shopName} está pronto! Valor total: R$ " . number_format((float)$os['total_value'], 2, ',', '.') . ".\n\nVocê pode revisar os itens e aprovar em 1 clique acessando o link do seu serviço:\n{$trackingUrl}");
+$waMsgPronto = urlencode("Olá, {$clientDisplayName}! Temos ótimas notícias: o reparo do seu {$os['equipment_info']} (OS {$os['os_number']}) foi concluído com sucesso pela {$shopName}! 🎉\n\nValor final: R$ " . number_format((float)$os['total_value'], 2, ',', '.') . ".\nVocê já pode retirá-lo em nossa oficina.\nVeja o laudo e fotos no link de rastreio:\n{$trackingUrl}");
+$waMsgAdicional = urlencode("Olá, {$clientDisplayName}! Durante a análise em bancada na {$shopName}, nossos técnicos identificaram a necessidade de novos itens para a conclusão do seu {$os['equipment_info']} (OS {$os['os_number']}).\n\nPor favor, acesse o link de rastreio para revisar os novos valores e autorizar:\n{$trackingUrl}");
+$pixKeyText = !empty($tenant['pix_key']) ? "Chave Pix ({$tenant['pix_key_type']}): {$tenant['pix_key']} em nome de " . ($tenant['pix_beneficiary'] ?? $shopName) : "Link da OS: {$trackingUrl}";
+$waMsgCobranca = urlencode("Olá, {$clientDisplayName}! Seguem os dados para pagamento do seu serviço na {$shopName} (OS {$os['os_number']}):\nValor total: R$ " . number_format((float)$os['total_value'], 2, ',', '.') . ".\n\n{$pixKeyText}\n\nVocê também pode acompanhar online acessando o rastreio:\n{$trackingUrl}");
 ?>
 
 <div class="space-y-6">
@@ -230,37 +230,200 @@ $waMsgCobranca = urlencode("Olá, {$clientDisplayName}! Seguem os dados para pag
                     </div>
                 </form>
 
-                <?php if (!empty($os['technical_diagnosis'])): ?>
-                    <div class="pt-4 mt-2 border-t border-slate-800 space-y-3">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="text-base">✨</span>
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-purple-300">Inteligência Artificial (RF09)</h4>
+                <!-- Bloco de Inteligência Artificial para o Laudo Técnico (RF09) -->
+                <div class="pt-4 mt-2 border-t border-slate-800 space-y-3" id="bloco-ia-laudo">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">✨</span>
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                                    <span>Tradução do Laudo com IA (RF09)</span>
+                                    <span class="text-[10px] px-2 py-0.2 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">Linguagem Leiga</span>
+                                </h4>
+                                <p class="text-[11px] text-slate-400">
+                                    Traduz termos difíceis de bancada em uma explicação acolhedora e transparente para o cliente.
+                                </p>
                             </div>
-                            <form action="<?= \Zyrtex\Core\Response::url('/admin/os/ia-simplificar') ?>" method="POST" class="inline">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
-                                <input type="hidden" name="os_id" value="<?= (int)$os['id'] ?>">
-                                <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow transition flex items-center gap-1.5">
-                                    <span>✨</span> <?= !empty($os['simplified_diagnosis_ai']) ? 'Regerar Explicação com IA' : 'Traduzir Laudo Técnico com IA' ?>
-                                </button>
-                            </form>
                         </div>
 
-                        <?php if (!empty($os['simplified_diagnosis_ai'])): ?>
-                            <div class="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 leading-relaxed">
-                                <div class="flex items-center justify-between font-bold text-purple-300 mb-1 text-[11px]">
-                                    <span>Exibição para o Cliente (Portal & Rastreio):</span>
-                                    <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-mono">Ativo no Portal</span>
-                                </div>
-                                <p class="text-slate-200 font-medium"><?= nl2br(htmlspecialchars($os['simplified_diagnosis_ai'], ENT_QUOTES, 'UTF-8')) ?></p>
-                            </div>
-                        <?php else: ?>
-                            <p class="text-[11px] text-slate-500 italic">
-                                Clique no botão acima para que o motor de IA traduza os jargões técnicos em uma explicação clara e acolhedora para o cliente final.
-                            </p>
-                        <?php endif; ?>
+                        <form action="<?= \Zyrtex\Core\Response::url('/admin/os/ia-simplificar') ?>" method="POST" id="form-ia-simplificar" class="inline" onsubmit="return false;">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+                            <input type="hidden" name="os_id" value="<?= (int)$os['id'] ?>">
+                            <input type="hidden" name="technical_diagnosis" id="ia_hidden_diagnosis" value="">
+                            <button type="button" onclick="executarTraducaoIA()" id="btn-ia-simplificar"
+                                    class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                                <span>✨</span>
+                                <span id="btn-ia-text"><?= !empty($os['simplified_diagnosis_ai']) ? 'Regerar Explicação com IA' : 'Traduzir Laudo Técnico com IA' ?></span>
+                            </button>
+                        </form>
                     </div>
-                <?php endif; ?>
+
+                    <!-- Card Chat Interativo com IA (Estilo Mensagem em Tempo Real) -->
+                    <div id="ai-chat-card" class="p-4 rounded-2xl bg-gradient-to-br from-purple-950/40 via-slate-900 to-slate-950 border border-purple-500/30 text-xs text-purple-200 leading-relaxed space-y-3 shadow-lg <?= empty($os['simplified_diagnosis_ai']) ? 'hidden' : '' ?>">
+                        <div class="flex items-center justify-between pb-2 border-b border-purple-500/20 text-[11px]">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-xs shadow">
+                                    🤖
+                                </div>
+                                <span class="font-bold text-purple-300">Assistente Virtual IA &bull; Explicação para o Cliente</span>
+                            </div>
+                            <span id="ai-saved-badge" class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-mono border border-emerald-500/30">
+                                ✓ Ativo no Portal & Rastreio
+                            </span>
+                        </div>
+
+                        <!-- Indicador de Digitando (Bouncing Dots) -->
+                        <div id="ai-typing-indicator" class="hidden py-2 px-1 flex items-center gap-2">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0ms"></span>
+                                <span class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 150ms"></span>
+                                <span class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 300ms"></span>
+                            </div>
+                            <span class="text-[11px] text-purple-300 italic">Analisando o laudo e redigindo a explicação em tempo real...</span>
+                        </div>
+
+                        <!-- Balão com o Texto (com suporte a Efeito Datilografia / Typewriter) -->
+                        <div class="p-3.5 rounded-xl bg-slate-950/80 border border-purple-500/20 text-slate-100 font-medium leading-relaxed relative min-h-[44px]">
+                            <div id="ai-typewriter-text"><?= nl2br(htmlspecialchars($os['simplified_diagnosis_ai'] ?? '', ENT_QUOTES, 'UTF-8')) ?></div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                            <span class="italic">💡 Este texto é exibido diretamente para o cliente na página de rastreio e no portal.</span>
+                            <button type="button" onclick="copiarTextoIA()" class="text-purple-400 hover:text-purple-300 hover:underline flex items-center gap-1 font-semibold">
+                                📋 Copiar Explicação
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder inicial quando ainda não foi gerado -->
+                    <div id="ai-placeholder-card" class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400 flex items-center justify-between gap-3 <?= !empty($os['simplified_diagnosis_ai']) ? 'hidden' : '' ?>">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-lg text-purple-400">🤖</span>
+                            <span>Digite seu laudo técnico no campo acima e clique em <strong>Traduzir Laudo Técnico com IA</strong> para ver a IA digitando a explicação em tempo real!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                let isAiTyping = false;
+
+                function executarTraducaoIA() {
+                    if (isAiTyping) return;
+
+                    const diagText = document.getElementById('technical_diagnosis');
+                    const form = document.getElementById('form-ia-simplificar');
+                    const btn = document.getElementById('btn-ia-simplificar');
+                    const btnText = document.getElementById('btn-ia-text');
+                    const chatCard = document.getElementById('ai-chat-card');
+                    const placeholderCard = document.getElementById('ai-placeholder-card');
+                    const indicator = document.getElementById('ai-typing-indicator');
+                    const textContainer = document.getElementById('ai-typewriter-text');
+                    const savedBadge = document.getElementById('ai-saved-badge');
+
+                    const val = (diagText ? diagText.value : '').trim();
+                    if (!val) {
+                        alert('⚠️ Por favor, preencha o "Diagnóstico Técnico / Serviço a Realizar" acima antes de acionar a IA.');
+                        if (diagText) diagText.focus();
+                        return;
+                    }
+
+                    isAiTyping = true;
+                    btn.disabled = true;
+                    btn.classList.add('opacity-75', 'cursor-not-allowed');
+                    btnText.innerText = 'Consultando IA...';
+
+                    // Mostra o card de chat e o indicador de digitando
+                    if (placeholderCard) placeholderCard.classList.add('hidden');
+                    if (chatCard) chatCard.classList.remove('hidden');
+                    if (indicator) indicator.classList.remove('hidden');
+                    if (savedBadge) savedBadge.classList.add('hidden');
+                    if (textContainer) textContainer.innerHTML = '';
+
+                    const formData = new FormData(form);
+                    formData.set('technical_diagnosis', val);
+
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (indicator) indicator.classList.add('hidden');
+
+                        if (!data.success || !data.text) {
+                            alert('Erro ao traduzir: ' + (data.error || 'Não foi possível gerar a explicação.'));
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                            btnText.innerText = 'Tentar Novamente ✨';
+                            isAiTyping = false;
+                            return;
+                        }
+
+                        // Inicia o Efeito Typewriter (digitando letra por letra como no chat)
+                        typeWriterEffect(data.text, textContainer, () => {
+                            if (savedBadge) savedBadge.classList.remove('hidden');
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                            btnText.innerText = 'Regerar Explicação com IA';
+                            isAiTyping = false;
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Erro na requisição IA:', err);
+                        if (indicator) indicator.classList.add('hidden');
+                        alert('Houve uma falha momentânea de comunicação com a IA. Tente novamente.');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                        btnText.innerText = 'Traduzir Laudo Técnico com IA';
+                        isAiTyping = false;
+                    });
+                }
+
+                function typeWriterEffect(fullText, element, onComplete) {
+                    element.innerHTML = '';
+                    const cursor = document.createElement('span');
+                    cursor.className = 'inline-block w-1.5 h-4 ml-0.5 bg-purple-400 animate-pulse align-middle';
+                    element.appendChild(cursor);
+
+                    let index = 0;
+                    const speed = 14; // Velocidade da digitação em milissegundos por caractere
+
+                    const timer = setInterval(() => {
+                        if (index < fullText.length) {
+                            cursor.insertAdjacentText('beforebegin', fullText.charAt(index));
+                            index++;
+                        } else {
+                            clearInterval(timer);
+                            cursor.remove();
+                            if (typeof onComplete === 'function') {
+                                onComplete();
+                            }
+                        }
+                    }, speed);
+                }
+
+                function copiarTextoIA() {
+                    const textContainer = document.getElementById('ai-typewriter-text');
+                    if (!textContainer || !textContainer.innerText) return;
+
+                    navigator.clipboard.writeText(textContainer.innerText).then(() => {
+                        alert('✓ Explicação copiada para a área de transferência!');
+                    }).catch(() => {
+                        // Fallback
+                        const temp = document.createElement('textarea');
+                        temp.value = textContainer.innerText;
+                        document.body.appendChild(temp);
+                        temp.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(temp);
+                        alert('✓ Explicação copiada para a área de transferência!');
+                    });
+                }
+                </script>
             </div>
 
             <!-- Card: Peças & Insumos Utilizados (com Busca Pesquisável + Dropdown + Auditoria) -->
@@ -464,11 +627,30 @@ $waMsgCobranca = urlencode("Olá, {$clientDisplayName}! Seguem os dados para pag
                                         'part_removed' => ['label' => '- Peça Removida', 'class' => 'bg-rose-500/10 text-rose-400 border-rose-500/20'],
                                         'status_changed' => ['label' => 'Status Alterado', 'class' => 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'],
                                         'os_created' => ['label' => 'Abertura da OS', 'class' => 'bg-blue-500/10 text-blue-400 border-blue-500/20'],
-                                        'client_approved_additions' => ['label' => 'Aprovado pelo Cliente', 'class' => 'bg-teal-500/10 text-teal-300 border-teal-500/20'],
-                                        'client_rejected_additions' => ['label' => 'Recusado pelo Cliente', 'class' => 'bg-amber-500/10 text-amber-300 border-amber-500/20']
+                                        'client_approved_additions' => ['label' => 'Aditivo Aprovado', 'class' => 'bg-teal-500/10 text-teal-300 border-teal-500/20'],
+                                        'client_rejected_additions' => ['label' => 'Aditivo Recusado', 'class' => 'bg-amber-500/10 text-amber-300 border-amber-500/20'],
+                                        'client_approved_budget' => ['label' => 'Orçamento Aprovado', 'class' => 'bg-teal-500/10 text-teal-300 border-teal-500/20'],
+                                        'client_digital_approval' => ['label' => 'Aprovação Digital', 'class' => 'bg-teal-500/10 text-teal-300 border-teal-500/20'],
+                                        'os_media_uploaded' => ['label' => '📸 Foto Anexada', 'class' => 'bg-purple-500/10 text-purple-300 border-purple-500/20'],
+                                        'os_media_deleted' => ['label' => '🗑️ Foto Removida', 'class' => 'bg-rose-500/10 text-rose-300 border-rose-500/20'],
+                                        'os_ai_diagnosis_simplified' => ['label' => '✨ Laudo IA', 'class' => 'bg-purple-500/10 text-purple-300 border-purple-500/20']
                                     ];
-                                    $badge = $actionBadges[$log['action']] ?? ['label' => $log['action'], 'class' => 'bg-slate-800 text-slate-400 border-slate-700'];
-                                    $empName = $details['employee_name'] ?? ($log['user_name'] ?? 'Sistema / Cliente');
+                                    $statusLabels = [
+                                        'budget' => 'Orçamento Gerado',
+                                        'approved' => 'Aprovado / Na Fila',
+                                        'in_progress' => 'Em Manutenção',
+                                        'waiting_parts' => 'Aguardando Peça',
+                                        'ready' => 'Pronto para Retirada',
+                                        'delivered' => 'Entregue / Concluído',
+                                        'cancelled' => 'Cancelado'
+                                    ];
+                                    $badge = $actionBadges[$log['action']] ?? ['label' => ucfirst(str_replace('_', ' ', $log['action'])), 'class' => 'bg-slate-800 text-slate-400 border-slate-700'];
+                                    
+                                    if (str_starts_with($log['action'], 'client_')) {
+                                        $empName = 'Cliente (Portal Público)';
+                                    } else {
+                                        $empName = $details['employee_name'] ?? ($log['user_name'] ?? 'Sistema / Bancada');
+                                    }
                                 ?>
                                     <tr class="hover:bg-slate-800/20">
                                         <td class="py-2.5 px-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
@@ -494,12 +676,46 @@ $waMsgCobranca = urlencode("Olá, {$clientDisplayName}! Seguem os dados para pag
                                                 Peça removida: <strong><?= htmlspecialchars($details['part_name'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong>
                                                 &bull; Qtd: <?= (int)($details['quantity'] ?? 1) ?>
                                                 &bull; Subtotal estornado: R$ <?= number_format((float)($details['unit_price'] ?? 0) * (int)($details['quantity'] ?? 1), 2, ',', '.') ?>
-                                            <?php elseif ($log['action'] === 'status_changed'): ?>
-                                                Transição: <code><?= htmlspecialchars($details['old_status'] ?? '', ENT_QUOTES, 'UTF-8') ?></code> &rarr; <strong><?= htmlspecialchars($details['new_status'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong>
+                                            <?php elseif ($log['action'] === 'status_changed'): 
+                                                $old = $statusLabels[$details['old_status'] ?? ''] ?? $details['old_status'] ?? '';
+                                                $new = $statusLabels[$details['new_status'] ?? ''] ?? $details['new_status'] ?? '';
+                                            ?>
+                                                Status atualizado: <span class="text-slate-400"><?= htmlspecialchars($old, ENT_QUOTES, 'UTF-8') ?></span> &rarr; <strong class="text-white"><?= htmlspecialchars($new, ENT_QUOTES, 'UTF-8') ?></strong>
                                             <?php elseif ($log['action'] === 'os_created'): ?>
-                                                Ordem de serviço gerada para <strong><?= htmlspecialchars($details['equipment'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong> com <?= (int)($details['initial_parts_count'] ?? 0) ?> peça(s) inicial(is).
-                                            <?php else: ?>
-                                                <?= htmlspecialchars(json_encode($details, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>
+                                                Ordem de serviço aberta para <strong><?= htmlspecialchars($details['equipment'] ?? '', ENT_QUOTES, 'UTF-8') ?></strong> com <?= (int)($details['initial_parts_count'] ?? 0) ?> peça(s) inicial(is).
+                                            <?php elseif ($log['action'] === 'client_approved_additions'): ?>
+                                                Autorização digital de peças e serviços adicionais confirmada pelo cliente através do Portal de Rastreio Público.
+                                            <?php elseif ($log['action'] === 'client_rejected_additions'): ?>
+                                                O cliente optou por não autorizar as peças/serviços adicionais propostos pela assistência.
+                                            <?php elseif (in_array($log['action'], ['client_approved_budget', 'client_digital_approval'], true)): ?>
+                                                Aprovação digital do orçamento confirmada pelo cliente através do Portal.
+                                            <?php elseif ($log['action'] === 'os_media_uploaded'): ?>
+                                                Arquivo anexado ao prontuário fotográfico: <strong><?= htmlspecialchars($details['file_name'] ?? 'Foto de bancada', ENT_QUOTES, 'UTF-8') ?></strong>
+                                            <?php elseif ($log['action'] === 'os_media_deleted'): ?>
+                                                Arquivo removido do prontuário: <strong><?= htmlspecialchars($details['file_name'] ?? 'Foto', ENT_QUOTES, 'UTF-8') ?></strong>
+                                            <?php elseif ($log['action'] === 'os_ai_diagnosis_simplified'): ?>
+                                                Diagnóstico técnico traduzido pela Inteligência Artificial para linguagem leiga e acolhedora.
+                                            <?php else: 
+                                                // Fallback limpo: remove chaves internas de banco e monta texto legível sem vazar JSON
+                                                $clean = array_filter($details, function($k) {
+                                                    return !in_array($k, ['os_id', 'id', 'tenant_id', 'user_id', 'os_number', 'media_id', 'part_id'], true);
+                                                }, ARRAY_FILTER_USE_KEY);
+
+                                                $parts = [];
+                                                foreach ($clean as $k => $v) {
+                                                    if (is_scalar($v)) {
+                                                        $label = match($k) {
+                                                            'by' => 'Origem',
+                                                            'provider' => 'Provedor IA',
+                                                            'equipment' => 'Equipamento',
+                                                            'reason' => 'Motivo',
+                                                            default => ucfirst(str_replace('_', ' ', $k))
+                                                        };
+                                                        $parts[] = "<span><strong>{$label}:</strong> " . htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8') . "</span>";
+                                                    }
+                                                }
+                                                echo !empty($parts) ? implode(' &bull; ', $parts) : 'Ação registrada no sistema.';
+                                            ?>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -771,9 +987,9 @@ $waMsgCobranca = urlencode("Olá, {$clientDisplayName}! Seguem os dados para pag
                 </div>
 
                 <div class="pt-3">
-                    <a href="<?= $portalUrl ?>" target="_blank"
-                       class="w-full py-2.5 rounded-xl text-center text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition block">
-                        🔗 Abrir Portal do Cliente &nearr;
+                    <a href="<?= $trackingUrl ?>" target="_blank"
+                       class="w-full py-2.5 rounded-xl text-center text-xs font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 transition flex items-center justify-center gap-1.5 block">
+                        <span>📱 Ver Rastreio da OS (Como no QR Code) &nearr;</span>
                     </a>
                 </div>
             </div>

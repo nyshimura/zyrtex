@@ -107,7 +107,54 @@ $totalCostValue = array_reduce($physicalProducts, fn($carry, $p) => $carry + ((i
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-800/60 font-medium">
-                        <?php foreach ($products as $p): ?>
+                        <?php 
+                        $stockAdRendered = false;
+                        $stockAdIndex = count($products) >= 3 ? 2 : count($products);
+                        foreach ($products as $idx => $p): 
+                            if (!$stockAdRendered && $idx === $stockAdIndex && empty($tenant['is_premium'])):
+                                $stockAdRendered = true;
+                        ?>
+                            <!-- Linha Patrocinada: Distribuidora Parceira B2B -->
+                            <tr class="bg-amber-500/5 hover:bg-amber-500/10 border-l-4 border-amber-500 transition">
+                                <td class="py-3 px-4 text-center">
+                                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center text-lg mx-auto shadow-sm">
+                                        ⭐
+                                    </div>
+                                </td>
+                                <td class="py-3.5 px-4 font-bold text-white">
+                                    <div class="flex items-center gap-2">
+                                        <span>Distribuidora Parceira de Peças & Telas</span>
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase bg-amber-500 text-slate-950">Patrocinado</span>
+                                    </div>
+                                    <span class="text-[11px] text-slate-400 block font-normal mt-0.5">Telas originais e baterias com 15% de desconto para assistências parceiras</span>
+                                </td>
+                                <td class="py-3.5 px-4 font-mono text-xs text-amber-400">
+                                    B2B-PARCEIRO
+                                </td>
+                                <td class="py-3.5 px-4 text-xs text-slate-300">
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+                                        Fornecedor
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-xs text-slate-400">
+                                    Fábrica
+                                </td>
+                                <td class="py-3.5 px-4 font-bold text-amber-400">
+                                    Preço Atacado
+                                </td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-semibold">
+                                        Pronta-Entrega
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-right">
+                                    <a href="<?= \Zyrtex\Core\Response::url('/termos#anuncios') ?>" target="_blank" rel="noopener sponsored"
+                                       class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition inline-flex items-center gap-1 shadow-sm">
+                                        <span>⚡ Pedir Tabela</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endif; ?>
                             <tr class="hover:bg-slate-800/30 transition">
                                 <td class="py-3 px-4 text-center">
                                     <div class="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden mx-auto shadow-sm">

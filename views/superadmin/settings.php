@@ -36,44 +36,94 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
         </div>
     </div>
 
-    <!-- Navegação em Abas (Tabs) -->
-    <div class="bg-slate-900 p-1.5 rounded-2xl border border-slate-800 overflow-x-auto flex items-center gap-1.5 no-scrollbar">
-        <button type="button" onclick="switchSettingsTab('precos')" id="tab-btn-precos"
-                class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap bg-indigo-600 text-white shadow-md shadow-indigo-600/30">
-            <span>💰</span>
-            <span>Preços & Taxas</span>
-        </button>
+    <style>
+        #superadminTabsTrack::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+    </style>
 
-        <button type="button" onclick="switchSettingsTab('mercadopago')" id="tab-btn-mercadopago"
-                class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80">
-            <span>💳</span>
-            <span>Mercado Pago Master</span>
-        </button>
+    <!-- Navegação em Abas (Tabs) com Controles de Navegação Integrados (Sem barra nativa feia) -->
+    <div class="relative group bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-800 shadow-sm flex flex-col">
+        <div class="relative flex items-center">
+            <!-- Botão Chevron Esquerda -->
+            <button type="button" id="tabScrollLeftBtn" onclick="scrollSuperadminTabs('left')" aria-label="Rolar abas para a esquerda"
+                    class="absolute left-1 z-20 w-8 h-8 rounded-xl bg-slate-800/95 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700/80 shadow-xl flex items-center justify-center transition-all duration-200 backdrop-blur-md opacity-0 pointer-events-none active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
 
-        <button type="button" onclick="switchSettingsTab('adsense')" id="tab-btn-adsense"
-                class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80">
-            <span>📢</span>
-            <span>Google AdSense</span>
-        </button>
+            <!-- Gradiente de Fade Esquerdo para Indicar Transbordo -->
+            <div id="tabFadeLeft" class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent rounded-l-2xl pointer-events-none z-10 transition-opacity duration-200 opacity-0"></div>
 
-        <button type="button" onclick="switchSettingsTab('vitrine')" id="tab-btn-vitrine"
-                class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80">
-            <span>🌐</span>
-            <span>Vitrine & Rodapé</span>
-        </button>
+            <!-- Trilha de Abas (Com rolagem oculta, suporte a touch e mousewheel) -->
+            <div id="superadminTabsTrack"
+                 style="scrollbar-width: none; -ms-overflow-style: none;"
+                 class="flex-1 overflow-x-auto scroll-smooth flex items-center gap-1.5 no-scrollbar scrollbar-none py-0.5 px-1 select-none">
+                <button type="button" onclick="switchSettingsTab('precos')" id="tab-btn-precos"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap bg-indigo-600 text-white shadow-md shadow-indigo-600/30 shrink-0">
+                    <span>💰</span>
+                    <span>Preços & Taxas</span>
+                </button>
 
-        <button type="button" onclick="switchSettingsTab('seguranca')" id="tab-btn-seguranca"
-                class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80">
-            <span>🛡️</span>
-            <span>Segurança Master</span>
-        </button>
+                <button type="button" onclick="switchSettingsTab('mercadopago')" id="tab-btn-mercadopago"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>💳</span>
+                    <span>Mercado Pago Master</span>
+                </button>
 
-        <button type="button" onclick="switchSettingsTab('updates')" id="tab-btn-updates"
-                class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80">
-            <span>🔄</span>
-            <span>Atualizações (GitHub)</span>
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        </button>
+                <button type="button" onclick="switchSettingsTab('adsense')" id="tab-btn-adsense"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>📢</span>
+                    <span>Google AdSense</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('vitrine')" id="tab-btn-vitrine"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>🌐</span>
+                    <span>Vitrine & Rodapé</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('seguranca')" id="tab-btn-seguranca"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>🛡️</span>
+                    <span>Segurança Master</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('smtp')" id="tab-btn-smtp"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>✉️</span>
+                    <span>Servidor SMTP & E-mail</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('growth')" id="tab-btn-growth"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>📈</span>
+                    <span>Remarketing & Indicações</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('updates')" id="tab-btn-updates"
+                        class="settings-tab-btn flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap text-slate-400 hover:text-white hover:bg-slate-800/80 shrink-0">
+                    <span>🔄</span>
+                    <span>Atualizações (GitHub)</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </button>
+            </div>
+
+            <!-- Gradiente de Fade Direito para Indicar Transbordo -->
+            <div id="tabFadeRight" class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 via-slate-900/90 to-transparent rounded-r-2xl pointer-events-none z-10 transition-opacity duration-200 opacity-0"></div>
+
+            <!-- Botão Chevron Direita -->
+            <button type="button" id="tabScrollRightBtn" onclick="scrollSuperadminTabs('right')" aria-label="Rolar abas para a direita"
+                    class="absolute right-1 z-20 w-8 h-8 rounded-xl bg-slate-800/95 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700/80 shadow-xl flex items-center justify-center transition-all duration-200 backdrop-blur-md opacity-0 pointer-events-none active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+
+        <!-- Micro-barra de Progresso Elegante (Oculta nativa, exibe micro-linha suave apenas durante rolagem se houver transbordo) -->
+        <div id="tabScrollIndicatorTrack" class="w-full h-1 bg-slate-800/40 rounded-full overflow-hidden mt-1 hidden">
+            <div id="tabScrollIndicatorThumb" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 rounded-full transition-all duration-150" style="width: 20%; margin-left: 0%;"></div>
+        </div>
     </div>
 
     <!-- Formulário Único Unificado com Todos os Parâmetros -->
@@ -102,17 +152,17 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                     
-                    <!-- Card Preço Domínio -->
+                    <!-- Card Preço Anuidade Sem Anúncios -->
                     <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between space-y-4">
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
                                 <label for="annual_domain_price" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
-                                    Domínio Próprio Anual
+                                    Plano Anual Sem Anúncios
                                 </label>
-                                <span class="text-base">🌐</span>
+                                <span class="text-base">✨</span>
                             </div>
                             <p class="text-[11px] text-slate-400 leading-relaxed">
-                                Cobrado anualmente para conectar domínio personalizado (.com.br / .com). Inclui supressão de anúncios.
+                                Cobrado anualmente para remover 100% dos anúncios do Google AdSense da vitrine, do rastreio de OS e do portal do cliente da oficina.
                             </p>
                         </div>
                         <div class="space-y-1">
@@ -122,7 +172,7 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                                        value="<?= htmlspecialchars($settings['annual_domain_price'] ?? '197.00', ENT_QUOTES, 'UTF-8') ?>"
                                        class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-indigo-500">
                             </div>
-                            <span class="text-[10px] text-slate-500 block">Renovação a cada 365 dias</span>
+                            <span class="text-[10px] text-slate-500 block">Renovação anual (365 dias)</span>
                         </div>
                     </div>
 
@@ -184,7 +234,7 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                     </span>
                     <p>
                         O sistema opera em modelo <strong>Freemium Radical</strong>: o lojista tem acesso irrestrito ao sistema sem mensalidade fixa. 
-                        A receita da plataforma advém de taxas pontuais de upgrade, anuidades de domínio próprio, publicidade Google AdSense e doações voluntárias.
+                        A receita da plataforma advém de taxas pontuais de upgrade, anuidades do Plano Sem Anúncios, publicidade Google AdSense e doações voluntárias.
                     </p>
                 </div>
 
@@ -208,7 +258,7 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                             <span>Mercado Pago Master da Zyrtex (Conta do SaaS)</span>
                         </h2>
                         <p class="text-xs text-slate-400 mt-0.5">
-                            Credenciais da conta do proprietário da Zyrtex para receber anuidades de domínio, taxas de troca e upgrades.
+                            Credenciais da conta do proprietário da Zyrtex para receber anuidades do plano sem anúncios, taxas de troca e upgrades.
                         </p>
                     </div>
                     <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
@@ -259,7 +309,7 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                         </div>
                         <div class="text-[11px] text-slate-400 space-y-1">
                             <p><strong>Configuração recomendada:</strong> Acesse seu painel no Mercado Pago Developers, cadastre esta URL no menu <em>Webhooks</em> e marque os eventos <code>payment</code> e <code>merchant_order</code>.</p>
-                            <p class="text-slate-500">Ao receber a confirmação do Pix, o Zyrtex ativa o domínio próprio ou atualiza a rota automaticamente sem intervenção humana.</p>
+                            <p class="text-slate-500">Ao receber a confirmação do Pix, o Zyrtex ativa o Plano Anual Sem Anúncios ou atualiza o endereço automaticamente sem intervenção humana.</p>
                         </div>
                     </div>
                 </div>
@@ -315,8 +365,9 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
                             <span>Regra de Negócio de Conformidade & Supressão Automática:</span>
                         </span>
                         <p>1. O script acima é injetado nas páginas públicas das lojas que operam no <strong>Plano Free</strong>.</p>
-                        <p class="text-emerald-400 font-semibold">2. Oficinas que contratam <strong>Domínio Próprio ou Plano Pro</strong> têm os anúncios 100% suprimidos automaticamente.</p>
-                        <p class="text-slate-500">3. A política de privacidade e o banner de cookies (LGPD) já alertam automaticamente sobre os cookies DART do Google AdSense.</p>
+                        <p class="text-emerald-400 font-semibold">2. Oficinas que contratam o <strong>Plano Anual Sem Anúncios (Premium)</strong> têm os anúncios 100% suprimidos automaticamente (zero scripts e zero publicidades).</p>
+                        <p class="text-amber-400 font-medium">3. Caso o visitante use AdBlock, o sistema exibe dinamicamente o card de apoio voluntário via Pix cadastrado na aba Vitrine & Pix, garantindo monetização contínua.</p>
+                        <p class="text-slate-500">4. A política de privacidade e o banner de cookies (LGPD) já alertam automaticamente sobre os cookies DART do Google AdSense.</p>
                     </div>
                 </div>
 
@@ -557,6 +608,386 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- ABA: SERVIDOR SMTP & E-MAILS DO SAAS       -->
+        <!-- ========================================== -->
+        <div id="tab-panel-smtp" class="settings-tab-panel space-y-6 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <span>✉️</span>
+                            <span>Servidor SMTP Master & Envio Transacional</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Configuração nativa de socket RFC 5321 para disparo de ativações de contas e tokens 2FA (Zyrtex Guard).
+                        </p>
+                    </div>
+
+                    <a href="<?= \Zyrtex\Core\Response::url('/' . $currentSaSlug . '/emails') ?>" 
+                       class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition flex items-center gap-2 shrink-0">
+                        <span>🎨</span>
+                        <span>Abrir Templates & Construtor Drag & Drop &rarr;</span>
+                    </a>
+                </div>
+
+                <!-- Toggle de Ativação do SMTP -->
+                <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="space-y-1">
+                        <span class="text-xs font-bold text-white flex items-center gap-2">
+                            <span>⚡</span>
+                            <span>Status do Envio de E-mails</span>
+                        </span>
+                        <p class="text-[11px] text-slate-400">
+                            Quando inativo, os e-mails são simulados com segurança e salvos no arquivo <code class="text-indigo-300">storage/logs/mail_simulated.log</code>, ideal para testes locais.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="hidden" name="smtp_active" value="0">
+                            <input type="checkbox" name="smtp_active" value="1" <?= (!empty($settings['smtp_active']) && (int)$settings['smtp_active'] === 1) ? 'checked' : '' ?> class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                        </label>
+                        <span class="text-xs font-bold <?= (!empty($settings['smtp_active']) && (int)$settings['smtp_active'] === 1) ? 'text-emerald-400' : 'text-slate-400' ?>">
+                            <?= (!empty($settings['smtp_active']) && (int)$settings['smtp_active'] === 1) ? 'Ativo (Disparo Real)' : 'Modo Simulação Offline' ?>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Configurações do Host, Porta e Criptografia -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="smtp_host" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            Host SMTP:
+                        </label>
+                        <input type="text" id="smtp_host" name="smtp_host" 
+                               value="<?= htmlspecialchars($settings['smtp_host'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                               placeholder="ex: smtp.gmail.com ou mail.smtp2go.com"
+                               class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                        <span class="text-[10px] text-slate-500 block">Endereço do servidor SMTP do seu provedor</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="smtp_port" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            Porta de Conexão:
+                        </label>
+                        <input type="number" id="smtp_port" name="smtp_port" 
+                               value="<?= htmlspecialchars($settings['smtp_port'] ?? '587', ENT_QUOTES, 'UTF-8') ?>"
+                               placeholder="587"
+                               class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                        <span class="text-[10px] text-slate-500 block">Porta padrão: 587 (TLS) ou 465 (SSL)</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="smtp_encryption" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            Criptografia / Protocolo:
+                        </label>
+                        <select id="smtp_encryption" name="smtp_encryption"
+                                class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                            <option value="tls" <?= (($settings['smtp_encryption'] ?? 'tls') === 'tls') ? 'selected' : '' ?>>STARTTLS (Recomendado - Porta 587)</option>
+                            <option value="ssl" <?= (($settings['smtp_encryption'] ?? '') === 'ssl') ? 'selected' : '' ?>>SSL / TLS Direto (Porta 465)</option>
+                            <option value="none" <?= (($settings['smtp_encryption'] ?? '') === 'none') ? 'selected' : '' ?>>Nenhuma / Conexão Plana (Porta 25)</option>
+                        </select>
+                        <span class="text-[10px] text-slate-500 block">STARTTLS garante transporte seguro com certificados</span>
+                    </div>
+                </div>
+
+                <!-- Credenciais de Autenticação -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="space-y-1.5">
+                        <label for="smtp_username" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            Usuário / Login SMTP:
+                        </label>
+                        <input type="text" id="smtp_username" name="smtp_username" 
+                               value="<?= htmlspecialchars($settings['smtp_username'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+                               placeholder="ex: contato@zyrtex.com.br"
+                               class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                        <span class="text-[10px] text-slate-500 block">Normalmente o mesmo e-mail de envio</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="smtp_password" class="block text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                            <span>Senha SMTP:</span>
+                            <?php if (!empty($settings['smtp_password'])): ?>
+                                <span class="text-[10px] text-emerald-400 font-mono">🔒 Criptografada (AES-256)</span>
+                            <?php endif; ?>
+                        </label>
+                        <input type="password" id="smtp_password" name="smtp_password" 
+                               placeholder="<?= !empty($settings['smtp_password']) ? '•••••••••••••••• (deixe em branco para manter)' : 'Digite a senha ou token do app' ?>"
+                               class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                        <span class="text-[10px] text-slate-500 block">Armazenada no banco com cifra simétrica AES-256-CBC</span>
+                    </div>
+                </div>
+
+                <!-- Remetente Oficial -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div class="space-y-1.5">
+                        <label for="smtp_from_email" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            E-mail Remetente (From):
+                        </label>
+                        <input type="email" id="smtp_from_email" name="smtp_from_email" 
+                               value="<?= htmlspecialchars($settings['smtp_from_email'] ?? 'notificacoes@zyrtex.com.br', ENT_QUOTES, 'UTF-8') ?>"
+                               placeholder="notificacoes@zyrtex.com.br"
+                               class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                        <span class="text-[10px] text-slate-500 block">Endereço visível para os clientes e lojistas</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="smtp_from_name" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                            Nome do Remetente (From Name):
+                        </label>
+                        <input type="text" id="smtp_from_name" name="smtp_from_name" 
+                               value="<?= htmlspecialchars($settings['smtp_from_name'] ?? 'Zyrtex SaaS', ENT_QUOTES, 'UTF-8') ?>"
+                               placeholder="Zyrtex SaaS"
+                               class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-medium text-white focus:outline-none focus:border-indigo-500">
+                        <span class="text-[10px] text-slate-500 block">Nome exibido na caixa de entrada</span>
+                    </div>
+                </div>
+
+                <input type="hidden" name="return_tab" value="smtp">
+
+                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <a href="<?= \Zyrtex\Core\Response::url('/' . $currentSaSlug . '/emails') ?>" 
+                       class="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition flex items-center gap-1.5">
+                        <span>✉️</span>
+                        <span>Ver e Editar Templates de E-mail (Drag & Drop)</span>
+                    </a>
+
+                    <div class="flex items-center gap-3">
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-emerald-600/30">
+                            Salvar Configurações de SMTP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================= -->
+        <!-- ABA: REMARKETING, FIDELIDADE & INDIQUE E GANHE (GROWTH) -->
+        <!-- ======================================================= -->
+        <div id="tab-panel-growth" class="settings-tab-panel space-y-6 hidden">
+            
+            <!-- Card 1: Motor de Remarketing & Desconto Progressivo por Tempo de Casa -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <span>⚡</span>
+                            <span>Motor de Recuperação de Carrinho & Remarketing Automático</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Gera checkout com 1-clique e aplica descontos ancorados baseados na fidelidade e antiguidade de cadastro da oficina.
+                        </p>
+                    </div>
+
+                    <!-- Status / Toggle Ativo -->
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="remarketing_auto_active" value="1" 
+                               <?= !empty($settings['remarketing_auto_active']) ? 'checked' : '' ?> 
+                               class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        <span class="ml-3 text-xs font-bold text-slate-300 peer-checked:text-amber-400">Varredura Automática</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    
+                    <!-- Janela de Expiração -->
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="remarketing_expiration_hours" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Tempo de Abandono
+                            </label>
+                            <span class="text-base">⏱️</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Horas com transação pendente parada antes de ser movida para a fila de recuperação.
+                        </p>
+                        <div class="relative">
+                            <input type="number" id="remarketing_expiration_hours" name="remarketing_expiration_hours"
+                                   min="1" max="720"
+                                   value="<?= htmlspecialchars($settings['remarketing_expiration_hours'] ?? '48', ENT_QUOTES, 'UTF-8') ?>"
+                                   class="w-full pr-12 pl-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-amber-500">
+                            <span class="absolute right-3.5 top-2.5 text-slate-500 font-bold text-xs">horas</span>
+                        </div>
+                    </div>
+
+                    <!-- Desconto Base Inicial -->
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="remarketing_base_discount" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Desconto Base
+                            </label>
+                            <span class="text-base">🏷️</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Porcentagem de desconto imediato oferecida para qualquer transação abandonada.
+                        </p>
+                        <div class="relative">
+                            <input type="number" id="remarketing_base_discount" name="remarketing_base_discount"
+                                   min="0" max="90" step="1"
+                                   value="<?= htmlspecialchars($settings['remarketing_base_discount'] ?? '10', ENT_QUOTES, 'UTF-8') ?>"
+                                   class="w-full pr-10 pl-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-amber-500">
+                            <span class="absolute right-3.5 top-2.5 text-slate-500 font-bold text-xs">%</span>
+                        </div>
+                    </div>
+
+                    <!-- Bônus por Mês de Casa -->
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="remarketing_loyalty_bonus_per_month" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Bônus Fidelidade / Mês
+                            </label>
+                            <span class="text-base">⭐</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Desconto extra somado para cada mês completo que a oficina já possui de cadastro no Zyrtex.
+                        </p>
+                        <div class="relative">
+                            <input type="number" id="remarketing_loyalty_bonus_per_month" name="remarketing_loyalty_bonus_per_month"
+                                   min="0" max="10" step="0.5"
+                                   value="<?= htmlspecialchars($settings['remarketing_loyalty_bonus_per_month'] ?? '2', ENT_QUOTES, 'UTF-8') ?>"
+                                   class="w-full pr-14 pl-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-amber-500">
+                            <span class="absolute right-3.5 top-2.5 text-slate-500 font-bold text-xs">%/mês</span>
+                        </div>
+                    </div>
+
+                    <!-- Teto Máximo de Desconto -->
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="remarketing_max_discount" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Teto Máximo
+                            </label>
+                            <span class="text-base">🛡️</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Limite máximo absoluto de desconto que uma oficina parceira antiga pode atingir.
+                        </p>
+                        <div class="relative">
+                            <input type="number" id="remarketing_max_discount" name="remarketing_max_discount"
+                                   min="5" max="90" step="1"
+                                   value="<?= htmlspecialchars($settings['remarketing_max_discount'] ?? '35', ENT_QUOTES, 'UTF-8') ?>"
+                                   class="w-full pr-10 pl-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-amber-500">
+                            <span class="absolute right-3.5 top-2.5 text-slate-500 font-bold text-xs">%</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Simulação Didática de Fidelidade -->
+                <div class="p-4 rounded-xl bg-slate-950/80 border border-amber-500/20 text-xs space-y-2">
+                    <span class="font-bold text-amber-400 flex items-center gap-2">
+                        <span>💡</span>
+                        <span>Fórmula Ativa de Fidelidade do Zyrtex</span>
+                    </span>
+                    <p class="text-slate-300 leading-relaxed">
+                        <code>Desconto Final = MIN(Base + (Meses de Cadastro &times; Bônus Mensal), Teto Máximo)</code>
+                    </p>
+                    <p class="text-slate-400 text-[11px]">
+                        <strong>Exemplo Prático:</strong> Uma oficina parceira cadastrada há <strong>6 meses</strong> que tentar comprar o Plano Anual (R$ 120,00) e não concluir receberá no checkout mágico: <code>10% + (6 &times; 2%) = 22% de desconto</code>, baixando a anuidade para <strong>R$ 93,60</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Card 2: Programa de Indicação Anti-Fraude ("Indique & Ganhe") -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                            <span>🎁</span>
+                            <span>Programa de Indicações ("Indique & Ganhe")</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            Permite aos lojistas convidarem colegas de bancada e ganharem dias gratuitos de Zyrtex Pro.
+                        </p>
+                    </div>
+
+                    <!-- Toggle Ativo -->
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="referral_active" value="1" 
+                               <?= !empty($settings['referral_active']) ? 'checked' : '' ?> 
+                               class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <span class="ml-3 text-xs font-bold text-slate-300 peer-checked:text-indigo-400">Programa Ativo</span>
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    <!-- Bônus de Boas-Vindas para Convidado -->
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="referral_welcome_days" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Boas-Vindas para o Convidado
+                            </label>
+                            <span class="text-base">🎉</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Dias de degustação de Zyrtex Pro concedidos imediatamente à nova oficina ao se cadastrar via link de convite.
+                        </p>
+                        <div class="relative">
+                            <input type="number" id="referral_welcome_days" name="referral_welcome_days"
+                                   min="0" max="365"
+                                   value="<?= htmlspecialchars($settings['referral_welcome_days'] ?? '15', ENT_QUOTES, 'UTF-8') ?>"
+                                   class="w-full pr-12 pl-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-indigo-500">
+                            <span class="absolute right-3.5 top-2.5 text-slate-500 font-bold text-xs">dias Pro</span>
+                        </div>
+                    </div>
+
+                    <!-- Recompensa para quem Indicou -->
+                    <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="referral_reward_days" class="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                                Recompensa do Indicador
+                            </label>
+                            <span class="text-base">🏆</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Dias de Zyrtex Pro creditados à oficina que convidou, <strong>somente após validação de transação real</strong>.
+                        </p>
+                        <div class="relative">
+                            <input type="number" id="referral_reward_days" name="referral_reward_days"
+                                   min="1" max="365"
+                                   value="<?= htmlspecialchars($settings['referral_reward_days'] ?? '30', ENT_QUOTES, 'UTF-8') ?>"
+                                   class="w-full pr-12 pl-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold text-sm focus:ring-2 focus:ring-indigo-500">
+                            <span class="absolute right-3.5 top-2.5 text-slate-500 font-bold text-xs">dias Pro</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Blindagem Jurídica Anti-Fraude (LGPD & Marco Civil) -->
+                <div class="p-5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-slate-950 to-slate-950 border border-emerald-500/30 text-xs space-y-2.5">
+                    <span class="font-bold text-emerald-400 flex items-center gap-2 text-sm">
+                        <span>🛡️</span>
+                        <span>Mecanismo Anti-Fraude com Blindagem Legal (LGPD Art. 7 & CDC)</span>
+                    </span>
+                    <p class="text-slate-300 leading-relaxed">
+                        Para impedir a criação automatizada de lojas falsas por fraudadores querendo farmar meses grátis sem pagar nada, 
+                        o bônus de <strong>+<?= (int)($settings['referral_reward_days'] ?? 30) ?> dias</strong> do indicador permanece com status <code>Pendente</code>.
+                    </p>
+                    <p class="text-slate-400 leading-relaxed text-[11px]">
+                        A bonificação é desbloqueada <strong>automaticamente e em tempo real</strong> no exato momento em que a oficina convidada registrar sua primeira transação financeira legítima:
+                        <br>&bull; <strong>Primeira OS Paga:</strong> quando um cliente final pagar um serviço na assistência via Pix Mercado Pago ou registro manual;
+                        <br>&bull; <strong>Compra de Serviço SaaS:</strong> contratação de plano sem anúncios ou alteração de slug.
+                    </p>
+                    <p class="text-slate-500 text-[10px]">
+                        🔒 <em>Privacidade Garantida:</em> A loja indicadora recebe apenas a confirmação do bônus ("Oficina Ativada"), sem acesso a valores de faturamento ou clientes da concorrência, respeitando integralmente a LGPD.
+                    </p>
+                </div>
+
+                <input type="hidden" name="return_tab" value="growth">
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-indigo-600/20">
+                        Salvar Parâmetros de Growth & Indicações
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
     </form>
 
     <!-- ========================================== -->
@@ -786,6 +1217,71 @@ $releaseChannel = $versionData['release_channel'] ?? 'stable';
 
 <!-- Script Vanilla para Alternância de Abas e Verificação de Atualizações no GitHub -->
 <script>
+// Controle de Navegação em Abas com Setas e Auto-Rolagem
+function scrollSuperadminTabs(direction) {
+    const track = document.getElementById('superadminTabsTrack');
+    if (!track) return;
+    const scrollAmount = 260;
+    track.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+    });
+}
+
+function updateSuperadminTabsScrollState() {
+    const track = document.getElementById('superadminTabsTrack');
+    const leftBtn = document.getElementById('tabScrollLeftBtn');
+    const rightBtn = document.getElementById('tabScrollRightBtn');
+    const fadeLeft = document.getElementById('tabFadeLeft');
+    const fadeRight = document.getElementById('tabFadeRight');
+    const indicatorTrack = document.getElementById('tabScrollIndicatorTrack');
+    const indicatorThumb = document.getElementById('tabScrollIndicatorThumb');
+
+    if (!track) return;
+
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const hasOverflow = maxScroll > 8;
+
+    if (!hasOverflow) {
+        if (leftBtn) { leftBtn.classList.add('opacity-0', 'pointer-events-none'); leftBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (rightBtn) { rightBtn.classList.add('opacity-0', 'pointer-events-none'); rightBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (fadeLeft) fadeLeft.classList.add('opacity-0');
+        if (fadeRight) fadeRight.classList.add('opacity-0');
+        if (indicatorTrack) indicatorTrack.classList.add('hidden');
+        return;
+    }
+
+    if (indicatorTrack) indicatorTrack.classList.remove('hidden');
+
+    // Estado Botão e Gradiente Esquerda
+    if (track.scrollLeft > 6) {
+        if (leftBtn) { leftBtn.classList.remove('opacity-0', 'pointer-events-none'); leftBtn.classList.add('opacity-100', 'pointer-events-auto'); }
+        if (fadeLeft) fadeLeft.classList.remove('opacity-0');
+    } else {
+        if (leftBtn) { leftBtn.classList.add('opacity-0', 'pointer-events-none'); leftBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (fadeLeft) fadeLeft.classList.add('opacity-0');
+    }
+
+    // Estado Botão e Gradiente Direita
+    if (track.scrollLeft < maxScroll - 6) {
+        if (rightBtn) { rightBtn.classList.remove('opacity-0', 'pointer-events-none'); rightBtn.classList.add('opacity-100', 'pointer-events-auto'); }
+        if (fadeRight) fadeRight.classList.remove('opacity-0');
+    } else {
+        if (rightBtn) { rightBtn.classList.add('opacity-0', 'pointer-events-none'); rightBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (fadeRight) fadeRight.classList.add('opacity-0');
+    }
+
+    // Atualiza a micro-barra de progresso integrada
+    if (indicatorThumb && maxScroll > 0) {
+        const thumbWidthPercent = Math.max(15, Math.min(50, (track.clientWidth / track.scrollWidth) * 100));
+        const availableMove = 100 - thumbWidthPercent;
+        const progress = Math.max(0, Math.min(1, track.scrollLeft / maxScroll));
+        const marginLeft = progress * availableMove;
+        indicatorThumb.style.width = thumbWidthPercent + '%';
+        indicatorThumb.style.marginLeft = marginLeft + '%';
+    }
+}
+
 function switchSettingsTab(tabKey) {
     // Esconde todos os painéis
     document.querySelectorAll('.settings-tab-panel').forEach(panel => {
@@ -809,6 +1305,9 @@ function switchSettingsTab(tabKey) {
     if (activeBtn) {
         activeBtn.classList.remove('text-slate-400');
         activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-600/30');
+
+        // Auto-centraliza a aba ativa suavemente no viewport visível da barra
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 
     // Atualiza o hash da URL para permitir navegação direta e voltar
@@ -817,14 +1316,31 @@ function switchSettingsTab(tabKey) {
     }
 }
 
-// Inicializa a aba baseada no hash da URL ao carregar a página
+// Inicializa a aba baseada no hash da URL ao carregar a página e configura listeners da trilha
 window.addEventListener('DOMContentLoaded', () => {
+    const track = document.getElementById('superadminTabsTrack');
+    if (track) {
+        track.addEventListener('scroll', updateSuperadminTabsScrollState, { passive: true });
+        
+        // Permite rolar horizontalmente com a roda tradicional do mouse (sem precisar de Shift)
+        track.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                track.scrollLeft += e.deltaY * 0.85;
+            }
+        }, { passive: false });
+    }
+
+    window.addEventListener('resize', updateSuperadminTabsScrollState);
+
     let hash = window.location.hash.replace('#tab-', '').replace('#', '');
-    if (hash === 'vitrine' || hash === 'mercadopago' || hash === 'adsense' || hash === 'seguranca' || hash === 'updates' || hash === 'precos') {
+    if (hash === 'vitrine' || hash === 'mercadopago' || hash === 'adsense' || hash === 'seguranca' || hash === 'updates' || hash === 'precos' || hash === 'smtp' || hash === 'growth') {
         switchSettingsTab(hash);
     } else {
         switchSettingsTab('precos');
     }
+
+    setTimeout(updateSuperadminTabsScrollState, 150);
 });
 
 // Verificador Assíncrono de Atualizações no Repositório GitHub

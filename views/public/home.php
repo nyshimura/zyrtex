@@ -385,7 +385,17 @@ if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
     </div>
 
     <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        <?php foreach ($featuredProducts as $fp): 
+        <?php 
+        $adRendered = false;
+        $adTargetIndex = count($featuredProducts) >= 3 ? 2 : count($featuredProducts);
+        
+        foreach ($featuredProducts as $index => $fp): 
+            // Injeta o card patrocinado disfarçado de produto no fluxo natural do grid
+            if (!$adRendered && $index === $adTargetIndex && empty($tenant['is_premium'])) {
+                \Zyrtex\Core\View::partial('product_ad_card', ['tenant' => $tenant, 'context' => 'vitrine']);
+                $adRendered = true;
+            }
+
             $isService = ((int)$fp['is_service'] === 1);
             $hasPhoto = !empty($fp['image_path']);
             $whatsClean = preg_replace('/\D/', '', $tenant['whatsapp_number'] ?? '');
@@ -444,6 +454,10 @@ if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <?php if (!$adRendered && empty($tenant['is_premium'])): ?>
+            <?php \Zyrtex\Core\View::partial('product_ad_card', ['tenant' => $tenant, 'context' => 'vitrine']); ?>
+        <?php endif; ?>
     </div>
 </section>
 <?php endif; ?>
@@ -609,25 +623,10 @@ if ($dayOfWeek >= 1 && $dayOfWeek <= 5) {
     </div>
 </section>
 
-<?php
-try {
-    if (empty($tenant['is_premium'])) {
-        $adsenseRow = \Zyrtex\Core\Database::fetchOne("SELECT config_value FROM saas_settings WHERE config_key = 'adsense_script' LIMIT 1");
-        $adsenseActive = \Zyrtex\Core\Database::fetchOne("SELECT config_value FROM saas_settings WHERE config_key = 'adsense_active' LIMIT 1");
-        if ($adsenseActive && $adsenseActive['config_value'] === '1' && !empty($adsenseRow['config_value'])):
-?>
-    <!-- Bloco Patrocinado / Google AdSense (Exclusivo Lojas Free) -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 my-10 text-center">
-        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">Publicidade Patrocinada</span>
-        <div class="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 flex items-center justify-center min-h-[90px] overflow-hidden">
-            <?= $adsenseRow['config_value'] ?>
-        </div>
-    </div>
-<?php
-        endif;
-    }
-} catch (\Throwable) {}
-?>
+<!-- Slot de Publicidade na Vitrine Pública (Antes do Rodapé) -->
+<div class="max-w-6xl mx-auto px-4 sm:px-6 my-8">
+    <?php \Zyrtex\Core\View::partial('adsense_slot', ['tenant' => $tenant, 'slot_context' => 'home_footer']); ?>
+</div>
 
 <!-- Script para Copiar Endereço -->
 <script>

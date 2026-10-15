@@ -47,43 +47,87 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
         </div>
     </div>
 
-    <!-- NAVEGAÇÃO POR ABAS LÓGICAS (Estilo Segmented Control) -->
-    <div class="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none text-xs font-bold">
-        <button type="button" onclick="switchSettingsTab('empresa')" id="tab-btn-empresa"
-                class="settings-tab-btn flex-1 min-w-[130px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
-            <span>🏢</span>
-            <span>Empresa & Local</span>
-        </button>
+    <style>
+        #adminTabsTrack::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+    </style>
 
-        <button type="button" onclick="switchSettingsTab('pagamentos')" id="tab-btn-pagamentos"
-                class="settings-tab-btn flex-1 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <span>💳</span>
-            <span>Recebimento (Pix / MP)</span>
-        </button>
+    <!-- NAVEGAÇÃO POR ABAS LÓGICAS (Sem barra nativa, com setinhas laterais) -->
+    <div class="relative group bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-800 shadow-sm flex flex-col">
+        <div class="relative flex items-center">
+            <!-- Botão Chevron Esquerda -->
+            <button type="button" id="adminTabScrollLeftBtn" onclick="scrollAdminTabs('left')" aria-label="Rolar abas para a esquerda"
+                    class="absolute left-1 z-20 w-8 h-8 rounded-xl bg-slate-800/95 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700/80 shadow-xl flex items-center justify-center transition-all duration-200 backdrop-blur-md opacity-0 pointer-events-none active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            </button>
 
-        <button type="button" onclick="switchSettingsTab('impressao')" id="tab-btn-impressao"
-                class="settings-tab-btn flex-1 min-w-[130px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <span>🖨️</span>
-            <span>Impressão & Balcão</span>
-        </button>
+            <!-- Gradiente de Fade Esquerdo -->
+            <div id="adminTabFadeLeft" class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-900 via-slate-900/90 to-transparent rounded-l-2xl pointer-events-none z-10 transition-opacity duration-200 opacity-0"></div>
 
-        <button type="button" onclick="switchSettingsTab('ia')" id="tab-btn-ia"
-                class="settings-tab-btn flex-1 min-w-[130px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <span>🤖</span>
-            <span>Inteligência Artificial</span>
-        </button>
+            <!-- Trilha de Abas (Com rolagem suave e sem scrollbar) -->
+            <div id="adminTabsTrack"
+                 style="scrollbar-width: none; -ms-overflow-style: none;"
+                 class="flex-1 overflow-x-auto scroll-smooth flex items-center gap-1.5 no-scrollbar scrollbar-none py-0.5 px-1 text-xs font-bold select-none">
+                <button type="button" onclick="switchSettingsTab('empresa')" id="tab-btn-empresa"
+                        class="settings-tab-btn shrink-0 min-w-[130px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 whitespace-nowrap">
+                    <span>🏢</span>
+                    <span>Empresa & Local</span>
+                </button>
 
-        <button type="button" onclick="switchSettingsTab('drive')" id="tab-btn-drive"
-                class="settings-tab-btn flex-1 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <span>💾</span>
-            <span>Google Drive (Backup)</span>
-        </button>
+                <button type="button" onclick="switchSettingsTab('pagamentos')" id="tab-btn-pagamentos"
+                        class="settings-tab-btn shrink-0 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60 whitespace-nowrap">
+                    <span>💳</span>
+                    <span>Recebimento (Pix / MP)</span>
+                </button>
 
-        <button type="button" onclick="switchSettingsTab('publica')" id="tab-btn-publica"
-                class="settings-tab-btn flex-1 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60">
-            <span>🌐</span>
-            <span>Página Pública & Link</span>
-        </button>
+                <button type="button" onclick="switchSettingsTab('impressao')" id="tab-btn-impressao"
+                        class="settings-tab-btn shrink-0 min-w-[130px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60 whitespace-nowrap">
+                    <span>🖨️</span>
+                    <span>Impressão & Balcão</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('ia')" id="tab-btn-ia"
+                        class="settings-tab-btn shrink-0 min-w-[130px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60 whitespace-nowrap">
+                    <span>🤖</span>
+                    <span>Inteligência Artificial</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('drive')" id="tab-btn-drive"
+                        class="settings-tab-btn shrink-0 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60 whitespace-nowrap">
+                    <span>💾</span>
+                    <span>Google Drive (Backup)</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('publica')" id="tab-btn-publica"
+                        class="settings-tab-btn shrink-0 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60 whitespace-nowrap">
+                    <span>🌐</span>
+                    <span>Página Pública & Link</span>
+                </button>
+
+                <button type="button" onclick="switchSettingsTab('seguranca')" id="tab-btn-seguranca"
+                        class="settings-tab-btn shrink-0 min-w-[140px] py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/60 whitespace-nowrap">
+                    <span>🛡️</span>
+                    <span>Segurança & 2FA</span>
+                </button>
+            </div>
+
+            <!-- Gradiente de Fade Direito -->
+            <div id="adminTabFadeRight" class="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 via-slate-900/90 to-transparent rounded-r-2xl pointer-events-none z-10 transition-opacity duration-200 opacity-0"></div>
+
+            <!-- Botão Chevron Direita -->
+            <button type="button" id="adminTabScrollRightBtn" onclick="scrollAdminTabs('right')" aria-label="Rolar abas para a direita"
+                    class="absolute right-1 z-20 w-8 h-8 rounded-xl bg-slate-800/95 hover:bg-indigo-600 text-slate-300 hover:text-white border border-slate-700/80 shadow-xl flex items-center justify-center transition-all duration-200 backdrop-blur-md opacity-0 pointer-events-none active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+
+        <!-- Micro-barra de Progresso Integrada -->
+        <div id="adminTabScrollIndicatorTrack" class="w-full h-1 bg-slate-800/40 rounded-full overflow-hidden mt-1 hidden">
+            <div id="adminTabScrollIndicatorThumb" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 rounded-full transition-all duration-150" style="width: 20%; margin-left: 0%;"></div>
+        </div>
     </div>
 
     <!-- ===================================================================== -->
@@ -648,24 +692,46 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
 
             <div>
                 <label for="ai_api_key" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Seu Token de Usuário Hugging Face (Gratuito)
+                    Chave de API / Token da Inteligência Artificial
                 </label>
                 <input type="password" id="ai_api_key" name="ai_api_key" 
                        value="<?= htmlspecialchars($tenant['ai_api_key'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-                       placeholder="hf_..."
+                       placeholder="gsk_... (Groq Grátis) | AIza... (Gemini Grátis) | sk-... (OpenAI) | hf_... (Hugging Face)"
                        class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono text-sm">
-                <span class="text-[11px] text-slate-500 mt-1 block">O token fica salvo sob a sua conta e não gera nenhum custo ou cobrança no cartão.</span>
+                <span class="text-[11px] text-slate-400 mt-1 block">
+                    O Zyrtex detecta automaticamente seu provedor (Groq, Gemini, OpenAI ou Hugging Face).
+                </span>
             </div>
 
-            <!-- Mini Tutorial Ilustrado Hugging Face -->
-            <?php 
-            \Zyrtex\Core\View::partial('tips_card', [
-                'title' => 'Como gerar seu Token Gratuito no Hugging Face (1 minuto):',
-                'description' => '1. Acesse o site do Hugging Face e faça login (ou crie conta grátis).<br>2. Vá em Settings > Access Tokens.<br>3. Clique em "+ Create new token", escolha a permissão "Read" e copie o código iniciado com <code>hf_...</code>.<br>4. Cole no campo acima e clique em salvar!',
-                'link' => 'https://huggingface.co/settings/tokens',
-                'linkText' => 'Abrir Hugging Face Access Tokens &rarr;'
-            ]);
-            ?>
+            <!-- Dicas de Provedores Gratuitos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                    <div class="flex items-center gap-2 text-emerald-400 font-bold">
+                        <span>⚡</span>
+                        <span>Groq Cloud (100% Grátis & Ultrarrápido)</span>
+                    </div>
+                    <p class="text-slate-400 text-[11px] leading-relaxed">
+                        Recomendado! Gera respostas em milissegundos sem custo e sem cartão de crédito.
+                        Crie sua chave iniciada com <code>gsk_...</code>.
+                    </p>
+                    <a href="https://console.groq.com/keys" target="_blank" class="inline-block text-indigo-400 hover:underline font-bold text-[11px]">
+                        Criar chave no Groq (Grátis) &rarr;
+                    </a>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                    <div class="flex items-center gap-2 text-blue-400 font-bold">
+                        <span>✨</span>
+                        <span>Google Gemini (Grátis via AI Studio)</span>
+                    </div>
+                    <p class="text-slate-400 text-[11px] leading-relaxed">
+                        Cota gratuita de 15 requisições/minuto no Google AI Studio. Chaves iniciadas com <code>AIza...</code>.
+                    </p>
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="inline-block text-indigo-400 hover:underline font-bold text-[11px]">
+                        Criar chave no Google AI Studio &rarr;
+                    </a>
+                </div>
+            </div>
 
             <div class="pt-3 border-t border-slate-800 flex justify-end">
                 <button type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition">
@@ -755,7 +821,7 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
     </div>
 
     <!-- ===================================================================== -->
-    <!-- ABA 6: PÁGINA PÚBLICA, ENDEREÇO & DOMÍNIO PRÓPRIO                       -->
+    <!-- ABA 6: PÁGINA PÚBLICA, ENDEREÇO & SUBDOMÍNIO                           -->
     <!-- ===================================================================== -->
     <div id="tab-pane-publica" class="settings-tab-pane hidden bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
         
@@ -765,10 +831,10 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
             <div>
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">
                     <span>🌐</span>
-                    <span>Endereço da Vitrine & Domínio Próprio</span>
+                    <span>Endereço da Vitrine & Subdomínio</span>
                 </h2>
                 <p class="text-xs text-slate-400 mt-0.5">
-                    Configure seu link de acesso exclusivo, conexão com domínio .com.br e acompanhamento digital de ordens de serviço.
+                    Configure seu link de acesso exclusivo por subdomínio ou URL amigável e acompanhamento digital de ordens de serviço.
                 </p>
             </div>
 
@@ -776,11 +842,11 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
             <?php if ($isPremium): ?>
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-500/30 text-amber-300 text-xs font-bold">
                     <span>★</span>
-                    <span>Plano Premium Ativo &bull; Domínio Próprio Liberado</span>
+                    <span>Plano Anual Sem Anúncios Ativo &bull; Experiência Limpa</span>
                 </div>
             <?php else: ?>
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold">
-                    <span>Plano Free &bull; Endereço Padrão Fixo</span>
+                    <span>Plano Free &bull; Anúncios Patrocinados Ativos</span>
                 </div>
             <?php endif; ?>
         </div>
@@ -884,7 +950,7 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                             </p>
                             <ul class="list-disc pl-4 mt-2 space-y-1 text-slate-400">
                                 <li>Pagar a <strong>taxa única de R$ 19,90 ao SaaS</strong> por cada alteração; ou</li>
-                                <li>Fazer <strong>Upgrade para o Plano Premium</strong> com alterações ilimitadas e domínio .com.br.</li>
+                                <li>Fazer <strong>Upgrade para o Plano Anual Sem Anúncios</strong> com navegação limpa e alterações liberadas.</li>
                             </ul>
                         </div>
 
@@ -906,87 +972,78 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
 
                         <div class="pt-1 flex flex-col gap-2">
                             <button type="button" id="btn_generate_slug_fee" onclick="generateSlugFeePix()"
-                                    class="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-amber-600/30 flex items-center justify-center gap-2">
-                                <span id="btn_generate_slug_fee_text">💳 Pagar Taxa e Mudar Endereço (R$ 19,90)</span>
+                                    class="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-amber-600/30">
+                                ⚡ Gerar Pix para Alteração (R$ 19,90)
                             </button>
                         </div>
                     </div>
                 <?php endif; ?>
-
             </div>
 
-            <!-- BOX 3: Domínio Próprio (.com.br / .com) -->
+            <!-- BOX 3: Identidade Digital & Subdomínio Exclusivo -->
             <div class="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
                 
                 <?php if ($isPremium): ?>
-                    <!-- Configuração de Domínio Próprio para Usuário Premium -->
+                    <!-- Status do Plano Anual Sem Anúncios Ativo -->
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <span>🌐</span>
-                                <span>Domínio Próprio (.com.br / .com)</span>
+                                <span>✨</span>
+                                <span>Subdomínio Exclusivo & Link da Loja</span>
                             </h3>
                             <p class="text-xs text-slate-400 mt-0.5">
-                                Seus clientes acessam sua loja diretamente pelo seu próprio site.
+                                Sua oficina com endereço profissional e 100% livre de qualquer anúncio.
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                            ★ Premium
+                        <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            ★ Anual Ativo
                         </span>
                     </div>
 
-                    <form action="<?= \Zyrtex\Core\Response::url('/admin/configuracoes/endereco') ?>" method="POST" class="space-y-4">
-                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
-                        <input type="hidden" name="slug" value="<?= htmlspecialchars($tenant['slug']) ?>">
-
-                        <div>
-                            <label for="custom_domain" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                                Seu Domínio Personalizado:
-                            </label>
-                            <input type="text" id="custom_domain" name="custom_domain" 
-                                   value="<?= htmlspecialchars($tenant['custom_domain'] ?? '') ?>"
-                                   placeholder="ex: www.minhaoficina.com.br"
-                                   class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 font-mono text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                            <p class="text-[11px] text-slate-500 mt-1">
-                                Digite sem http:// ou https:// (ex: <code class="text-slate-400">www.minhaassistencia.com.br</code>)
-                            </p>
+                    <div class="space-y-3 pt-1">
+                        <!-- Card Subdomínio Wildcard -->
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block">Opção 1: Seu Subdomínio Exclusivo</span>
+                            <div class="flex items-center justify-between gap-2">
+                                <code class="text-xs text-white font-mono font-bold select-all">https://<?= htmlspecialchars($tenant['slug']) ?>.zyrtex.com.br</code>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">SSL Wildcard Ativo</span>
+                            </div>
                         </div>
 
-                        <!-- Instruções de Apontamento DNS -->
-                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-400 space-y-1.5 leading-relaxed">
-                            <span class="font-bold text-slate-300 block">📌 Apontamentos DNS no seu registrador (ex: Registro.br, Hostinger):</span>
-                            <div>&bull; <strong>CNAME</strong>: Entrada <code class="text-indigo-400 font-mono">www</code> apontando para o servidor da plataforma.</div>
-                            <div>&bull; <strong>Tipo A</strong>: Entrada <code class="text-indigo-400 font-mono">@</code> apontando para o IP do seu host.</div>
+                        <!-- Card URL Amigável -->
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">Opção 2: URL Amigável</span>
+                            <div class="flex items-center justify-between gap-2">
+                                <code class="text-xs text-white font-mono font-bold select-all">https://zyrtex.com.br/<?= htmlspecialchars($tenant['slug']) ?></code>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Disponível</span>
+                            </div>
                         </div>
 
-                        <div class="flex items-center gap-2">
-                            <button type="submit" 
-                                    class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-emerald-600/30">
-                                Salvar Domínio Próprio
-                            </button>
-                            <?php if (!empty($tenant['custom_domain'])): ?>
-                                <button type="button" onclick="document.getElementById('custom_domain').value=''; this.form.submit();"
-                                        class="py-3 px-4 rounded-xl bg-slate-800 hover:bg-rose-900/40 text-slate-400 hover:text-rose-300 font-bold text-xs transition border border-slate-700">
-                                    Desvincular
-                                </button>
-                            <?php endif; ?>
+                        <!-- Vantagens Ativas -->
+                        <div class="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 space-y-1">
+                            <div class="font-bold flex items-center gap-1.5 text-emerald-200">
+                                <span>🛡️</span>
+                                <span>Benefícios Ativos no seu Plano Anual:</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300">✓ <strong>Zero Anúncios:</strong> Vitrine, rastreio e portal dos clientes sem propagandas.</p>
+                            <p class="text-[11px] text-slate-300">✓ <strong>Alterações Livres de Taxa:</strong> Troque o nome da loja/slug quando quiser.</p>
                         </div>
-                    </form>
+                    </div>
 
                 <?php else: ?>
-                    <!-- Bloco Bloqueado: Exclusivo do Plano Premium (Upsell Elegante) -->
+                    <!-- Bloco Bloqueado: Exclusivo do Plano Anual Sem Anúncios (Upsell Elegante) -->
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
-                                <span>🔒</span>
-                                <span>Domínio Próprio (.com.br / .com)</span>
+                                <span>✨</span>
+                                <span>Plano Anual Sem Anúncios (Experiência Limpa)</span>
                             </h3>
                             <p class="text-xs text-slate-500 mt-0.5">
-                                Recurso exclusivo para assinantes do Plano Premium.
+                                Remova 100% das publicidades da sua loja e passe máxima autoridade para seus clientes.
                             </p>
                         </div>
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-                            Bloqueado
+                            Plano Free
                         </span>
                     </div>
 
@@ -994,18 +1051,18 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                         <div class="flex items-start gap-3">
                             <span class="text-2xl">⭐</span>
                             <div>
-                                <h4 class="text-xs font-bold text-amber-300">Deseja seu próprio site oficial na internet?</h4>
+                                <h4 class="text-xs font-bold text-amber-300">Deseja uma experiência 100% profissional e sem anúncios?</h4>
                                 <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                                    Conecte seu domínio como <strong>www.suaassistencia.com.br</strong> e fortaleça a autoridade da sua marca no Google, com remoção total de anúncios e alterações de endereço livres de qualquer taxa!
+                                    Ao assinar o <strong>Plano Anual Sem Anúncios</strong>, você elimina todas as publicidades do Google da sua vitrine, do rastreio de OS enviado aos clientes e do portal de aprovação de orçamentos!
                                 </p>
                             </div>
                         </div>
 
                         <div class="text-[11px] text-slate-300 space-y-1 pt-1">
-                            <div>✓ <strong>Domínio Próprio .com.br</strong> integrado</div>
-                            <div>✓ <strong>Alterações de endereço e slug ilimitadas</strong> (sem taxa de R$ 19,90)</div>
-                            <div>✓ <strong>Sem anúncios patrocinados</strong> na vitrine e prontuário</div>
-                            <div>✓ <strong>Suporte Prioritário VIP</strong></div>
+                            <div>✓ <strong>Zero Anúncios</strong> na sua vitrine comercial, rastreio de OS e portal do cliente</div>
+                            <div>✓ <strong>Alterações de endereço e slug ilimitadas</strong> (sem taxa avulsa de R$ 19,90)</div>
+                            <div>✓ <strong>Selo de Oficina Verificada</strong> com maior credibilidade</div>
+                            <div>✓ <strong>Apenas R$ <?= htmlspecialchars($annualPrice ?? '197,00', ENT_QUOTES, 'UTF-8') ?> por ano</strong> (menos de R$ 0,55 por dia!)</div>
                         </div>
 
                         <!-- Formulário de Ativação / Upgrade -->
@@ -1013,7 +1070,7 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
                             <button type="submit" 
                                     class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2">
-                                <span>★ Assinar Plano Premium (R$ 49,90/mês)</span>
+                                <span>★ Assinar Plano Anual Sem Anúncios (R$ <?= htmlspecialchars($annualPrice ?? '197,00', ENT_QUOTES, 'UTF-8') ?>/ano)</span>
                             </button>
                         </form>
                     </div>
@@ -1462,7 +1519,7 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                         <span>Transações de Planos & Assinaturas Zyrtex</span>
                     </h3>
                     <p class="text-[11px] text-slate-400 mt-0.5">
-                        Histórico de contratações de domínio próprio, taxas de migração e suporte ao Direito de Arrependimento (CDC Art. 49).
+                        Histórico de assinaturas do Plano Anual Sem Anúncios, taxas de migração e suporte ao Direito de Arrependimento (CDC Art. 49).
                     </p>
                 </div>
                 <span class="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
@@ -1489,7 +1546,7 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                         <tbody class="divide-y divide-slate-800/60 font-medium">
                             <?php foreach ($subscriptions as $sub): 
                                 $planNames = [
-                                    'annual_domain' => 'Domínio Anual Próprio',
+                                    'annual_domain' => 'Plano Anual Sem Anúncios',
                                     'slug_change' => 'Alteração de Endereço',
                                     'niche_change' => 'Alteração de Nicho'
                                 ];
@@ -1639,16 +1696,160 @@ $whatsappShareUrl = "https://wa.me/?text=" . urlencode($whatsappShareText);
                 <h4 class="text-sm font-extrabold text-emerald-400">Pagamento Aprovado com Sucesso!</h4>
                 <p class="text-xs text-slate-300">
                     Seu novo endereço <span id="modal_success_slug" class="font-mono text-emerald-300 font-bold"></span> já está ativo!
-                </p>
             </div>
 
         </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ABA 7: SEGURANÇA & 2FA STEAM GUARD                                    -->
+    <!-- ===================================================================== -->
+    <div id="tab-pane-seguranca" class="settings-tab-pane bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm hidden">
+        <div class="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-base">🛡️</span>
+                    <span>Segurança da Conta & Autenticação em Dois Fatores (2FA)</span>
+                </h2>
+                <p class="text-xs text-slate-400 mt-1">Proteja sua oficina contra acessos indevidos com tokens criptográficos de segundo fator estilo Steam Guard.</p>
+            </div>
+
+            <span class="px-3 py-1.5 rounded-full text-xs font-bold <?= !empty($user['two_factor_enabled']) ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400 border border-slate-700' ?> flex items-center gap-2 shrink-0">
+                <span class="w-2 h-2 rounded-full <?= !empty($user['two_factor_enabled']) ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500' ?>"></span>
+                <span><?= !empty($user['two_factor_enabled']) ? '2FA Zyrtex Guard Ativo' : '2FA Desativado' ?></span>
+            </span>
+        </div>
+
+        <form action="<?= \Zyrtex\Core\Response::url('/admin/configuracoes/seguranca') ?>" method="POST" class="space-y-6">
+            <?= $csrf ?>
+
+            <!-- Card Explicativo Estilo Steam Guard -->
+            <div class="p-6 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/30 border border-cyan-500/30 space-y-4 shadow-xl">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center text-2xl shrink-0">
+                        🛡️
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-extrabold text-white flex items-center gap-2">
+                            <span>Zyrtex Guard</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase">Steam Style 2FA</span>
+                        </h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Quando ativado, sempre que você tentar entrar no sistema com seu e-mail e senha, um código alfanumérico seguro de 5 caracteres será gerado imediatamente e enviado para o seu e-mail cadastrado (<strong><?= htmlspecialchars($user['email'] ?? '') ?></strong>). O acesso à sua oficina só é liberado após a digitação desse código de 5 dígitos.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Toggle Switch -->
+                <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                    <div class="space-y-0.5">
+                        <span class="text-xs font-bold text-white block">Ativar verificação em duas etapas no login</span>
+                        <span class="text-[11px] text-slate-400 block">Exige o código de segurança a cada nova sessão iniciada</span>
+                    </div>
+
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="hidden" name="two_factor_enabled" value="0">
+                        <input type="checkbox" name="two_factor_enabled" value="1" <?= (!empty($user['two_factor_enabled'])) ? 'checked' : '' ?> class="sr-only peer">
+                        <div class="w-12 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500 shadow-inner"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dicas de Segurança Adicionais -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-400">
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                    <span class="font-bold text-slate-200 block flex items-center gap-1.5">
+                        <span>⏱️</span>
+                        <span>Expiração de 10 Minutos</span>
+                    </span>
+                    <p class="text-[11px]">Cada código gerado possui validade estrita de 10 minutos. Códigos não utilizados são descartados automaticamente.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                    <span class="font-bold text-slate-200 block flex items-center gap-1.5">
+                        <span>🔒</span>
+                        <span>Criptografia Hashed</span>
+                    </span>
+                    <p class="text-[11px]">Os tokens nunca são salvos em texto plano na base de dados, utilizando hash SHA-256 irreversível para máxima blindagem.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-cyan-600/30 flex items-center gap-2">
+                    <span>💾</span>
+                    <span>Salvar Configuração de Segurança</span>
+                </button>
+            </div>
+        </form>
     </div>
 
 </div>
 
 <!-- SCRIPT DE ABAS, TOGGLE EXCLUSIVO & MODAL DE TAXA -->
 <script>
+function scrollAdminTabs(direction) {
+    const track = document.getElementById('adminTabsTrack');
+    if (!track) return;
+    const scrollAmount = 260;
+    track.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+    });
+}
+
+function updateAdminTabsScrollState() {
+    const track = document.getElementById('adminTabsTrack');
+    const leftBtn = document.getElementById('adminTabScrollLeftBtn');
+    const rightBtn = document.getElementById('adminTabScrollRightBtn');
+    const fadeLeft = document.getElementById('adminTabFadeLeft');
+    const fadeRight = document.getElementById('adminTabFadeRight');
+    const indicatorTrack = document.getElementById('adminTabScrollIndicatorTrack');
+    const indicatorThumb = document.getElementById('adminTabScrollIndicatorThumb');
+
+    if (!track) return;
+
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const hasOverflow = maxScroll > 8;
+
+    if (!hasOverflow) {
+        if (leftBtn) { leftBtn.classList.add('opacity-0', 'pointer-events-none'); leftBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (rightBtn) { rightBtn.classList.add('opacity-0', 'pointer-events-none'); rightBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (fadeLeft) fadeLeft.classList.add('opacity-0');
+        if (fadeRight) fadeRight.classList.add('opacity-0');
+        if (indicatorTrack) indicatorTrack.classList.add('hidden');
+        return;
+    }
+
+    if (indicatorTrack) indicatorTrack.classList.remove('hidden');
+
+    // Estado Esquerda
+    if (track.scrollLeft > 6) {
+        if (leftBtn) { leftBtn.classList.remove('opacity-0', 'pointer-events-none'); leftBtn.classList.add('opacity-100', 'pointer-events-auto'); }
+        if (fadeLeft) fadeLeft.classList.remove('opacity-0');
+    } else {
+        if (leftBtn) { leftBtn.classList.add('opacity-0', 'pointer-events-none'); leftBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (fadeLeft) fadeLeft.classList.add('opacity-0');
+    }
+
+    // Estado Direita
+    if (track.scrollLeft < maxScroll - 6) {
+        if (rightBtn) { rightBtn.classList.remove('opacity-0', 'pointer-events-none'); rightBtn.classList.add('opacity-100', 'pointer-events-auto'); }
+        if (fadeRight) fadeRight.classList.remove('opacity-0');
+    } else {
+        if (rightBtn) { rightBtn.classList.add('opacity-0', 'pointer-events-none'); rightBtn.classList.remove('opacity-100', 'pointer-events-auto'); }
+        if (fadeRight) fadeRight.classList.add('opacity-0');
+    }
+
+    // Micro-barra de progresso
+    if (indicatorThumb && maxScroll > 0) {
+        const thumbWidthPercent = Math.max(15, Math.min(50, (track.clientWidth / track.scrollWidth) * 100));
+        const availableMove = 100 - thumbWidthPercent;
+        const progress = Math.max(0, Math.min(1, track.scrollLeft / maxScroll));
+        const marginLeft = progress * availableMove;
+        indicatorThumb.style.width = thumbWidthPercent + '%';
+        indicatorThumb.style.marginLeft = marginLeft + '%';
+    }
+}
+
 function switchSettingsTab(tabId) {
     // Esconde todos os painéis
     document.querySelectorAll('.settings-tab-pane').forEach(el => el.classList.add('hidden'));
@@ -1670,6 +1871,9 @@ function switchSettingsTab(tabId) {
     if (activeBtn) {
         activeBtn.classList.remove('text-slate-400');
         activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-lg', 'shadow-indigo-600/30');
+
+        // Auto-centraliza a aba suavemente no viewport visível
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }
 
     // Atualiza o hash na URL
@@ -1934,11 +2138,26 @@ function toggleMetricsCustomFields(mode) {
 
 // Inicia com a aba apontada pelo hash na URL (ex: #publica) ou por padrão 'empresa'
 document.addEventListener('DOMContentLoaded', function() {
+    const track = document.getElementById('adminTabsTrack');
+    if (track) {
+        track.addEventListener('scroll', updateAdminTabsScrollState, { passive: true });
+        track.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                track.scrollLeft += e.deltaY * 0.85;
+            }
+        }, { passive: false });
+    }
+
+    window.addEventListener('resize', updateAdminTabsScrollState);
+
     let hash = window.location.hash.replace('#', '');
-    if (['empresa', 'pagamentos', 'impressao', 'ia', 'drive', 'publica'].includes(hash)) {
+    if (['empresa', 'pagamentos', 'impressao', 'ia', 'drive', 'publica', 'seguranca'].includes(hash)) {
         switchSettingsTab(hash);
     } else {
         switchSettingsTab('empresa');
     }
+
+    setTimeout(updateAdminTabsScrollState, 150);
 });
 </script>

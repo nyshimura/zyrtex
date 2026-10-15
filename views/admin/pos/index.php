@@ -109,7 +109,16 @@ $lastSale = $lastSale ?? null;
                 </div>
             <?php else: ?>
                 <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-                    <?php foreach ($products as $prod): 
+                    <?php 
+                    $posAdRendered = false;
+                    $posAdTargetIndex = count($products) >= 4 ? 3 : count($products);
+
+                    foreach ($products as $idx => $prod): 
+                        if (!$posAdRendered && $idx === $posAdTargetIndex && empty($tenant['is_premium'])) {
+                            \Zyrtex\Core\View::partial('product_ad_card', ['tenant' => $tenant, 'context' => 'pos']);
+                            $posAdRendered = true;
+                        }
+
                         $isService = ((int)$prod['is_service'] === 1);
                         $stock = (int)$prod['stock'];
                         $isOutOfStock = (!$isService && $stock <= 0);
@@ -185,6 +194,10 @@ $lastSale = $lastSale ?? null;
 
                         </div>
                     <?php endforeach; ?>
+                    
+                    <?php if (!$posAdRendered && empty($tenant['is_premium'])): ?>
+                        <?php \Zyrtex\Core\View::partial('product_ad_card', ['tenant' => $tenant, 'context' => 'pos']); ?>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
         </div>

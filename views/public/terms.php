@@ -129,7 +129,7 @@
                 <li>Os usuários podem optar por não receber anúncios personalizados acessando a página oficial de <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" class="text-indigo-400 underline font-semibold">Configurações de Anúncios do Google</a> ou através do portal da <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" class="text-indigo-400 underline font-semibold">Network Advertising Initiative (NAI)</a>.</li>
             </ul>
             <p>
-                <strong>5.3 Supressão Total de Anúncios no Plano Pago:</strong> Oficinas que contratarem o plano com Domínio Próprio têm 100% dos blocos de anúncios suprimidos automaticamente, desfrutando de uma experiência completamente <em>white-label</em>.
+                <strong>5.3 Supressão Total de Anúncios no Plano Pago:</strong> Oficinas que contratarem o Plano Anual Sem Anúncios têm 100% dos blocos de anúncios suprimidos automaticamente, desfrutando de uma experiência completamente <em>ad-free</em> e profissional.
             </p>
         </section>
 
@@ -160,7 +160,7 @@
                 <span class="text-indigo-400">7.</span> Planos Pagos e Garantia de 7 Dias (CDC - Art. 49)
             </h2>
             <p>
-                <strong>7.1 Preços e Transparência:</strong> Os serviços pagos (Domínio Próprio Anual, alteração extraordinária de subdomínio/slug e troca de nicho) possuem valores claramente especificados na tabela oficial de preços do sistema.
+                <strong>7.1 Preços e Transparência:</strong> Os serviços pagos (Plano Anual Sem Anúncios, alteração extraordinária de subdomínio/slug e troca de nicho) possuem valores claramente especificados na tabela oficial de preços do sistema.
             </p>
             <p>
                 <strong>7.2 Direito de Arrependimento e Estorno em 7 Dias:</strong> Em cumprimento estrito ao <strong>Artigo 49 do Código de Defesa do Consumidor (Lei nº 8.078/90)</strong>, o lojista que contratar qualquer anuidade ou taxa paga na plataforma poderá exercer o direito de arrependimento no prazo impreterível de <strong>7 (sete) dias corridos</strong> a partir da aprovação da compra.

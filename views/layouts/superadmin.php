@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? 'SuperAdmin &bull; Zyrtex SaaS', ENT_QUOTES, 'UTF-8') ?></title>
     
+    <!-- PWA & Mobile Meta Tags -->
+    <?php $baseUrl = $baseUrl ?? \Zyrtex\Core\Response::baseUrl(); ?>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Zyrtex SuperAdmin">
+    <link rel="manifest" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/manifest.json">
+    <link rel="apple-touch-icon" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    
     <!-- Tailwind CSS (v3 via CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -30,6 +41,36 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         code, .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Oculta completamente a barra de rolagem nativa feia do sistema operacional */
+        .no-scrollbar::-webkit-scrollbar,
+        .scrollbar-none::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .no-scrollbar,
+        .scrollbar-none {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
+        /* Scrollbar fina elegante e escura quando necessária */
+        .thin-scrollbar::-webkit-scrollbar {
+            height: 4px;
+            width: 4px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 9999px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 9999px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
@@ -103,9 +144,14 @@
                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-3 block mb-2">Plataforma & SaaS</span>
                 <nav class="space-y-1">
                     <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/parametros') ?>" 
-                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= str_contains($currentUri, '/' . $saSlug . '/parametros') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= (str_contains($currentUri, '/' . $saSlug . '/parametros') && !str_contains($currentUri, 'tab-smtp')) ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
                         <span class="text-base">⚙️</span>
                         <span>Preços & Parâmetros</span>
+                    </a>
+                    <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/emails') ?>" 
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= str_contains($currentUri, '/' . $saSlug . '/emails') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
+                        <span class="text-base">✉️</span>
+                        <span>Templates de E-mail</span>
                     </a>
                     <a href="<?= \Zyrtex\Core\Response::url('/' . $saSlug . '/broadcast') ?>" 
                        class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition <?= str_contains($currentUri, '/' . $saSlug . '/broadcast') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' ?>">
@@ -426,6 +472,17 @@
             }
         });
     })();
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/sw.js')
+                    .then(reg => console.log('Zyrtex SuperAdmin Service Worker registrado:', reg.scope))
+                    .catch(err => console.warn('Falha no Service Worker:', err));
+            });
+        }
     </script>
 </body>
 </html>

@@ -26,6 +26,16 @@ $contactWhatsapp = $saasSettings['saas_contact_whatsapp'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle ?? 'Zyrtex - Sistema SaaS de Gestão para Assistências Técnicas | 100% Gratuito', ENT_QUOTES, 'UTF-8') ?></title>
     
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Zyrtex SaaS">
+    <link rel="manifest" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/manifest.json">
+    <link rel="apple-touch-icon" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,7 +81,7 @@ $contactWhatsapp = $saasSettings['saas_contact_whatsapp'] ?? '';
     <!-- Topbar Informativa -->
     <div class="bg-gradient-to-r from-indigo-900 via-indigo-700 to-emerald-700 text-white text-xs py-2 px-4 text-center font-medium shadow-inner">
         <span><?= htmlspecialchars($topbarAnnouncement, ENT_QUOTES, 'UTF-8') ?></span>
-        <a href="<?= \Zyrtex\Core\Response::url('/') ?>#planos" class="underline hover:text-indigo-200 ml-1.5 font-bold">Conheça o Plano com Domínio Próprio &rarr;</a>
+        <a href="<?= \Zyrtex\Core\Response::url('/') ?>#planos" class="underline hover:text-indigo-200 ml-1.5 font-bold">Conheça o Plano Anual Sem Anúncios &rarr;</a>
     </div>
 
     <!-- Header / Navbar Principal do SaaS -->
@@ -161,7 +171,7 @@ $contactWhatsapp = $saasSettings['saas_contact_whatsapp'] ?? '';
                     <li><a href="<?= \Zyrtex\Core\Response::url('/') ?>#recursos" class="hover:text-white transition">Recursos & PDV</a></li>
                     <li><a href="<?= \Zyrtex\Core\Response::url('/') ?>#nichos" class="hover:text-white transition">Nichos Suportados</a></li>
                     <li><a href="<?= \Zyrtex\Core\Response::url('/') ?>#por-que-gratis" class="hover:text-white transition">Por que é Grátis?</a></li>
-                    <li><a href="<?= \Zyrtex\Core\Response::url('/') ?>#planos" class="hover:text-white transition">Plano Domínio Customizado</a></li>
+                    <li><a href="<?= \Zyrtex\Core\Response::url('/') ?>#planos" class="hover:text-white transition">Plano Anual Sem Anúncios</a></li>
                     <li><a href="<?= \Zyrtex\Core\Response::url('/') ?>#apoie" class="hover:text-white transition">Apoie com um Pix (Coffee)</a></li>
                 </ul>
             </div>
@@ -196,6 +206,18 @@ $contactWhatsapp = $saasSettings['saas_contact_whatsapp'] ?? '';
 
     <!-- Banner de Consentimento de Cookies & LGPD -->
     <?php \Zyrtex\Core\View::partial('cookie_banner'); ?>
+
+    <!-- PWA Service Worker Registration & Install Prompt -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/sw.js')
+                    .then(reg => console.log('Zyrtex Service Worker registrado:', reg.scope))
+                    .catch(err => console.warn('Falha no Service Worker:', err));
+            });
+        }
+    </script>
+    <?php \Zyrtex\Core\View::partial('pwa_install_prompt'); ?>
 
 </body>
 </html>

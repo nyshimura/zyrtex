@@ -19,6 +19,17 @@ $activePalette = $colorPalettes[$themeColor] ?? $colorPalettes['indigo'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($tenant['business_name'] ?? 'Assistência Técnica Especializada', ENT_QUOTES, 'UTF-8') ?> - Zyrtex</title>
     
+    <!-- PWA & Mobile Meta Tags -->
+    <?php $baseUrl = $baseUrl ?? \Zyrtex\Core\Response::baseUrl(); ?>
+    <meta name="theme-color" content="<?= $activePalette['600'] ?? '#4f46e5' ?>">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="<?= htmlspecialchars($tenant['business_name'] ?? 'Zyrtex', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="manifest" href="<?= !empty($tenant['slug']) ? htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/manifest.json?slug=' . urlencode($tenant['slug']) : htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/manifest.json' ?>">
+    <link rel="apple-touch-icon" href="<?= !empty($tenant['logo_path']) ? htmlspecialchars(asset($tenant['logo_path']), ENT_QUOTES, 'UTF-8') : htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/assets/images/pwa-icon-192.png' ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    
     <!-- Gerenciador Imediato de Tema (Prevenção de FOUC) -->
     <script>
         (function() {
@@ -320,6 +331,18 @@ $activePalette = $colorPalettes[$themeColor] ?? $colorPalettes['indigo'];
 
     <!-- Banner de Consentimento de Cookies & LGPD -->
     <?php \Zyrtex\Core\View::partial('cookie_banner'); ?>
+
+    <!-- PWA Service Worker Registration & Install Prompt -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/sw.js')
+                    .then(reg => console.log('Zyrtex Service Worker registrado:', reg.scope))
+                    .catch(err => console.warn('Falha no Service Worker:', err));
+            });
+        }
+    </script>
+    <?php \Zyrtex\Core\View::partial('pwa_install_prompt', ['tenant' => $tenant ?? null]); ?>
 </body>
 </html>
 

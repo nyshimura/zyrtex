@@ -28,6 +28,22 @@ $old = $old ?? [];
         <form action="<?= \Zyrtex\Core\Response::url('/cadastro') ?>" method="POST" class="space-y-8">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
 
+            <?php if (!empty($referralCode)): ?>
+                <!-- Banner de Convite de Parceiro Ativo -->
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/80 via-slate-900 to-indigo-950/80 border border-emerald-500/30 flex items-center gap-3 shadow-lg">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0">
+                        🎁
+                    </div>
+                    <div>
+                        <span class="text-xs font-black text-emerald-300 uppercase tracking-wider block">Convite de Parceiro Ativo!</span>
+                        <p class="text-xs text-slate-200 mt-0.5">
+                            Você foi convidado por <strong><?= htmlspecialchars($referrerName ?: 'Oficina Parceira', ENT_QUOTES, 'UTF-8') ?></strong> e garantiu <strong>15 dias de Zyrtex Pro liberados na faixa</strong>!
+                        </p>
+                    </div>
+                </div>
+                <input type="hidden" name="referral_code" value="<?= htmlspecialchars($referralCode, ENT_QUOTES, 'UTF-8') ?>">
+            <?php endif; ?>
+
             <!-- SEÇÃO 1: Escolha do Nicho -->
             <div>
                 <div class="flex items-center justify-between mb-2">

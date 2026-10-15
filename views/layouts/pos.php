@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PDV Totem Express - Zyrtex</title>
     
+    <!-- PWA & Mobile Meta Tags -->
+    <?php $baseUrl = $baseUrl ?? \Zyrtex\Core\Response::baseUrl(); ?>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="<?= htmlspecialchars($tenant['business_name'] ?? 'PDV Zyrtex', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="manifest" href="<?= !empty($tenant['slug']) ? htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/manifest.json?slug=' . urlencode($tenant['slug']) : htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/manifest.json' ?>">
+    <link rel="apple-touch-icon" href="<?= !empty($tenant['logo_path']) ? htmlspecialchars(asset($tenant['logo_path']), ENT_QUOTES, 'UTF-8') : htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/assets/images/pwa-icon-192.png' ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,5 +115,15 @@
         <?= $content ?? '' ?>
     </main>
 
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/sw.js')
+                    .then(reg => console.log('Zyrtex POS Service Worker registrado:', reg.scope))
+                    .catch(err => console.warn('Falha no Service Worker:', err));
+            });
+        }
+    </script>
 </body>
 </html>

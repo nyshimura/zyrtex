@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Oficina - Zyrtex SaaS</title>
     
+    <!-- PWA & Mobile Meta Tags -->
+    <?php $baseUrl = $baseUrl ?? \Zyrtex\Core\Response::baseUrl(); ?>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="<?= htmlspecialchars($tenant['business_name'] ?? 'Zyrtex Admin', ENT_QUOTES, 'UTF-8') ?>">
+    <link rel="manifest" href="<?= !empty($tenant['slug']) ? htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/manifest.json?slug=' . urlencode($tenant['slug']) : htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/manifest.json' ?>">
+    <link rel="apple-touch-icon" href="<?= !empty($tenant['logo_path']) ? htmlspecialchars(asset($tenant['logo_path']), ENT_QUOTES, 'UTF-8') : htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') . '/assets/images/pwa-icon-192.png' ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/assets/images/pwa-icon-192.png">
+    
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +45,36 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; }
+
+        /* Oculta completamente a barra de rolagem nativa feia do sistema operacional */
+        .no-scrollbar::-webkit-scrollbar,
+        .scrollbar-none::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .no-scrollbar,
+        .scrollbar-none {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
+        /* Scrollbar fina elegante e escura quando necessária */
+        .thin-scrollbar::-webkit-scrollbar {
+            height: 4px;
+            width: 4px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 9999px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 9999px;
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
     </style>
 </head>
 <body class="min-h-full flex flex-col bg-slate-950 text-slate-100">
@@ -105,13 +146,14 @@
                 $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?? '';
 
                 $isConfiguracoes = str_contains($requestUri, '/admin/configuracoes');
+                $isIndicacoes    = str_contains($requestUri, '/admin/indicacoes');
                 $isOs            = str_contains($requestUri, '/admin/os');
                 $isClientes      = str_contains($requestUri, '/admin/clientes');
                 $isPdv           = str_contains($requestUri, '/admin/pdv');
                 $isEstoque       = str_contains($requestUri, '/admin/estoque');
                 $isEquipe        = str_contains($requestUri, '/admin/equipe');
                 $isSuporte       = str_contains($requestUri, '/admin/suporte');
-                $isDashboard     = !$isConfiguracoes && !$isOs && !$isClientes && !$isPdv && !$isEstoque && !$isEquipe && !$isSuporte && str_contains($requestUri, '/admin');
+                $isDashboard     = !$isConfiguracoes && !$isIndicacoes && !$isOs && !$isClientes && !$isPdv && !$isEstoque && !$isEquipe && !$isSuporte && str_contains($requestUri, '/admin');
 
                 $activeClass   = 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-white bg-indigo-600/20 border border-indigo-500/30 font-semibold shadow-sm';
                 $inactiveClass = 'flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition';
@@ -152,6 +194,13 @@
                        class="<?= $isEquipe ? $activeClass : $inactiveClass ?>">
                         <span class="text-lg">👥</span>
                         <span>Equipe & Acessos</span>
+                    </a>
+
+                    <a href="<?= \Zyrtex\Core\Response::url('/admin/indicacoes') ?>" 
+                       class="<?= $isIndicacoes ? $activeClass : $inactiveClass ?>">
+                        <span class="text-lg">🎁</span>
+                        <span>Indique & Ganhe</span>
+                        <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Pro Grátis</span>
                     </a>
 
                     <a href="<?= \Zyrtex\Core\Response::url('/admin/configuracoes') ?>" 
@@ -211,7 +260,7 @@
 
                     <?php if (!empty($tenant['is_premium'])): ?>
                         <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                            ★ Domínio Ativo
+                            ★ Sem Anúncios
                         </span>
                     <?php else: ?>
                         <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
@@ -268,7 +317,7 @@
             </main>
 
             <!-- AdSense Freemium Slot (Quando ativo) -->
-            <?php \Zyrtex\Core\View::partial('adsense_slot'); ?>
+            <?php \Zyrtex\Core\View::partial('adsense_slot', ['tenant' => $tenant ?? null, 'slot_context' => 'admin']); ?>
 
             <!-- FOOTER -->
             <footer class="p-6 border-t border-slate-900 text-center text-xs text-slate-500">
@@ -279,5 +328,16 @@
 
     </div>
 
+    <!-- PWA Service Worker Registration & Install Prompt -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/sw.js')
+                    .then(reg => console.log('Zyrtex Service Worker registrado:', reg.scope))
+                    .catch(err => console.warn('Falha no Service Worker:', err));
+            });
+        }
+    </script>
+    <?php \Zyrtex\Core\View::partial('pwa_install_prompt', ['tenant' => $tenant ?? null]); ?>
 </body>
 </html>

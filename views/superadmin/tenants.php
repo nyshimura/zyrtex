@@ -31,7 +31,7 @@ $csrfField = $csrfField ?? \Zyrtex\Core\CSRF::field();
             
             <div class="sm:col-span-6">
                 <input type="text" name="q" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>"
-                       placeholder="Buscar por nome da oficina, endereço (/slug) ou domínio próprio..."
+                       placeholder="Buscar por nome da oficina ou endereço (/slug)..."
                        class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs">
             </div>
 
@@ -106,9 +106,9 @@ $csrfField = $csrfField ?? \Zyrtex\Core\CSRF::field();
                                            class="font-mono text-xs text-indigo-400 hover:underline">
                                             /<?= htmlspecialchars($t['slug'], ENT_QUOTES, 'UTF-8') ?>
                                         </a>
-                                        <?php if (!empty($t['custom_domain'])): ?>
-                                            <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">
-                                                <?= htmlspecialchars($t['custom_domain'], ENT_QUOTES, 'UTF-8') ?>
+                                        <?php if ($isPrem): ?>
+                                            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">
+                                                ★ Sem Anúncios
                                             </span>
                                         <?php endif; ?>
                                     </div>
