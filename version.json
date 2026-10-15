@@ -1,7 +1,7 @@
 {
     "name": "zyrtex-saas",
-    "version": "2.1.0",
-    "build": 20261014,
+    "version": "2.2.0",
+    "build": 20261015,
     "release_channel": "stable",
     "github_repo": "nyshimura/zyrtex",
     "github_url": "https://github.com/nyshimura/zyrtex",
